@@ -19,6 +19,7 @@ func (r *Router) setupProtectedRoutes(apiGroup *echo.Group) {
 	userGroup.GET("/profile", authHandlers.GetProfile)
 	portfolioGroup := userGroup.Group("/portfolio")
 	setupCashPortfolioRoutes(portfolioGroup) // Setup CashPortfolio routes (includes PnL)
+	setupBondPortfolioRoutes(portfolioGroup) // Setup BondPortfolio routes
 
 	// Setup admin routes
 	setupAdminRoutes(apiGroup, authHandlers)
@@ -61,4 +62,23 @@ func setupCashPortfolioRoutes(portfolioGroup *echo.Group) {
 	pnlGroup.POST("", portfolioHandlers.CreatePnlRealizedCash, validator.ValidateRequest(&validator.CreatePnlRealizedCashRequest{}))
 	pnlGroup.PUT("/:id", portfolioHandlers.UpdatePnlRealizedCash, validator.ValidateRequest(&validator.UpdatePnlRealizedCashRequest{}))
 	pnlGroup.DELETE("/:id", portfolioHandlers.DeletePnlRealizedCash)
+}
+
+// setupBondPortfolioRoutes configures portfolio bond routes
+func setupBondPortfolioRoutes(portfolioGroup *echo.Group) {
+	// Initialize portfolio bond handlers
+	bondRepo := models.NewPortfolioBondRepository()
+	couponRepo := models.NewPortfolioBondCouponRepository()
+	realizedRepo := models.NewPortfolioBondRealizedRepository()
+	portfolioBondHandlers := api.NewPortfolioBondHandlers(bondRepo, couponRepo, realizedRepo)
+
+	bondGroup := portfolioGroup.Group("/bond")
+	bondGroup.POST("", portfolioBondHandlers.CreateBondPortfolio)
+	bondGroup.GET("", portfolioBondHandlers.GetMyBondPortfolios)
+
+	bondGroup.PUT("/:portfolioId", portfolioBondHandlers.UpdateBondPortfolio)
+	bondGroup.DELETE("/:portfolioId", portfolioBondHandlers.DeleteBondPortfolio)
+
+	bondGroup.PUT("/:portfolioId/market-price-override", portfolioBondHandlers.UpdateMarketPriceOverride, validator.ValidateRequest(&validator.UpdateMarketPriceOverrideRequest{}))
+
 }
