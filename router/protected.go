@@ -11,7 +11,8 @@ import (
 // setupProtectedRoutes configures routes that require authentication
 func (r *Router) setupProtectedRoutes(apiGroup *echo.Group) {
 	// Initialize auth handlers
-	authHandlers := api.NewAuthHandlers()
+	userRepo := models.NewUserRepository()
+	authHandlers := api.NewAuthHandlers(userRepo)
 
 	userGroup := apiGroup.Group("/users")
 	userGroup.Use(middleware.RequireAuth()) // Add authentication middleware to protected routes

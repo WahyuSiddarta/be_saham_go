@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/WahyuSiddarta/be_saham_go/api"
+	"github.com/WahyuSiddarta/be_saham_go/models"
 	"github.com/WahyuSiddarta/be_saham_go/validator"
 	"github.com/labstack/echo/v4"
 )
@@ -10,7 +11,8 @@ import (
 func (r *Router) setupAuthRoutes(apiGroup *echo.Group) {
 
 	// Initialize auth handlers
-	authHandlers := api.NewAuthHandlers()
+	userRepo := models.NewUserRepository()
+	authHandlers := api.NewAuthHandlers(userRepo)
 
 	// Authentication routes (no auth required)
 	authGroup := apiGroup.Group("/auth")

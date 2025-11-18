@@ -13,11 +13,13 @@ import (
 )
 
 // AuthHandlers contains all authentication-related handlers
-type AuthHandlers struct{}
+type AuthHandlers struct {
+	repo models.UserRepository
+}
 
 // NewAuthHandlers creates a new instance of auth handlers
-func NewAuthHandlers() *AuthHandlers {
-	return &AuthHandlers{}
+func NewAuthHandlers(repo models.UserRepository) *AuthHandlers {
+	return &AuthHandlers{repo: repo}
 }
 
 // convertPaymentData converts payment request data to model
@@ -53,20 +55,19 @@ func (h *AuthHandlers) Login(c echo.Context) error {
 	req := validator.GetValidatedRequest(c).(*validator.LoginRequest)
 
 	// Find user by email
-	userRepo := models.NewUserRepository()
-	user, err := userRepo.FindByEmail(req.Email)
+	user, err := h.repo.FindByEmail(req.Email)
 	if err != nil {
 		Logger.Error().Err(err).Str("email", req.Email).Msg("[Login] Gagal mencari pengguna saat login")
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan server", nil)
 	}
 
 	if user == nil {
-		return helper.ErrorResponse(c, http.StatusUnauthorized, "Email atau password tidak valid", nil)
+		return helper.ErrorResponse(c, http.StatusBadRequest, "Email atau password tidak valid", nil)
 	}
 
 	// Validate password
-	if err := userRepo.ValidatePassword(req.Password, user.Password); err != nil {
-		return helper.ErrorResponse(c, http.StatusUnauthorized, "Email atau password tidak valid", nil)
+	if err := h.repo.ValidatePassword(req.Password, user.Password); err != nil {
+		return helper.ErrorResponse(c, http.StatusBadRequest, "Email atau password tidak valid", nil)
 	}
 
 	// Check if user account is active
@@ -95,8 +96,7 @@ func (h *AuthHandlers) Register(c echo.Context) error {
 	req := validator.GetValidatedRequest(c).(*validator.RegisterRequest)
 
 	// Check if user already exists
-	userRepo := models.NewUserRepository()
-	existingUser, err := userRepo.FindByEmail(req.Email)
+	existingUser, err := h.repo.FindByEmail(req.Email)
 	if err != nil {
 		Logger.Error().Err(err).Str("email", req.Email).Msg("[Register] Gagal memeriksa pengguna saat registrasi")
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan server", nil)
@@ -125,7 +125,7 @@ func (h *AuthHandlers) Register(c echo.Context) error {
 	}
 
 	// Create new user
-	newUser, err := userRepo.Create(createReq)
+	newUser, err := h.repo.Create(createReq)
 	if err != nil {
 		Logger.Error().Err(err).Str("email", req.Email).Msg("[Register] Gagal membuat pengguna saat registrasi")
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan server", nil)
@@ -187,8 +187,7 @@ func (h *AuthHandlers) UpdateUserLevel(c echo.Context) error {
 	}
 
 	// Update user level
-	userRepo := models.NewUserRepository()
-	result, err := userRepo.UpdateUserLevel(userID, req.UserLevel, paymentData, &adminUser.ID)
+	result, err := h.repo.UpdateUserLevel(userID, req.UserLevel, paymentData, &adminUser.ID)
 	if err != nil {
 		Logger.Error().Err(err).Int("user_id", userID).Str("new_level", string(req.UserLevel)).Msg("[UpdateUserLevel] Gagal memperbarui level pengguna")
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Gagal memperbarui level pengguna", nil)
@@ -216,8 +215,7 @@ func (h *AuthHandlers) UpdateUserStatus(c echo.Context) error {
 	}
 
 	// Update user status
-	userRepo := models.NewUserRepository()
-	updatedUser, err := userRepo.UpdateUserStatus(userID, req.Status)
+	updatedUser, err := h.repo.UpdateUserStatus(userID, req.Status)
 	if err != nil {
 		Logger.Error().Err(err).Int("user_id", userID).Str("new_status", string(req.Status)).Msg("[UpdateUserStatus] Error updating user status")
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Error updating user status", nil)
@@ -245,8 +243,7 @@ func (h *AuthHandlers) GetAllUsers(c echo.Context) error {
 	}
 
 	// Get users with filters
-	userRepo := models.NewUserRepository()
-	result, err := userRepo.GetAllUsers(page, limit, query.Status, query.UserLevel, query.EmailFilter)
+	result, err := h.repo.GetAllUsers(page, limit, query.Status, query.UserLevel, query.EmailFilter)
 	if err != nil {
 		Logger.Error().Err(err).Msg("[GetAllUsers] Error fetching users")
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Error fetching users", nil)
@@ -258,8 +255,7 @@ func (h *AuthHandlers) GetAllUsers(c echo.Context) error {
 // GetExpiredUsers returns users with expired premium subscriptions (admin only)
 func (h *AuthHandlers) GetExpiredUsers(c echo.Context) error {
 	// Get expired users
-	userRepo := models.NewUserRepository()
-	expiredUsers, err := userRepo.GetExpiredUsers()
+	expiredUsers, err := h.repo.GetExpiredUsers()
 	if err != nil {
 		Logger.Error().Err(err).Msg("[GetExpiredUsers] Error fetching expired users")
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Error fetching expired users", nil)
