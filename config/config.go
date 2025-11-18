@@ -19,6 +19,9 @@ type Config struct {
 	Env      string
 	LogLevel string
 
+	// JWT Configuration
+	JWT JWTConfig
+
 	// CORS Configuration
 	CORS CORSConfig
 
@@ -27,6 +30,12 @@ type Config struct {
 
 	// Database Configuration
 	Database DatabaseConfig
+}
+
+// JWTConfig holds JWT configuration
+type JWTConfig struct {
+	Secret    string
+	ExpiresIn string
 }
 
 // DatabaseConfig holds database configuration
@@ -79,6 +88,10 @@ func Load() (*Config, error) {
 		Port:     getEnv("PORT", "8080"),
 		Env:      getEnv("ENV", "development"),
 		LogLevel: getEnv("LOG_LEVEL", "info"),
+		JWT: JWTConfig{
+			Secret:    getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-in-production"),
+			ExpiresIn: getEnv("JWT_EXPIRES_IN", "24h"),
+		},
 		CORS: CORSConfig{
 			AllowedOrigins: parseCORSOrigins(getEnv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173")),
 			Enabled:        getEnv("CORS_ENABLED", "true") == "true",

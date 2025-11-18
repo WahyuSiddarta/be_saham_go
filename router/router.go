@@ -38,6 +38,7 @@ func (r *Router) SetupRoutes() error {
 
 	// Apply middleware specific to API routes
 	middleware.SetupAPIMiddleware(apiGroup) // Setup all route groups
+	r.setupAuthRoutes(apiGroup)
 	r.setupPublicRoutes(apiGroup)
 	r.setupProtectedRoutes(apiGroup) // Future routes that require authentication
 

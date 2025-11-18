@@ -9,9 +9,8 @@ import (
 
 // setupPublicRoutes configures public routes (no authentication required)
 func (r *Router) setupPublicRoutes(apiGroup *echo.Group) {
-	rpub := apiGroup.Group("/public")
 
-	// Health check endpoint - accessible at /api/public/health
+	rpub := apiGroup.Group("/public")
 	rpub.GET("/health", func(c echo.Context) error {
 		healthData := map[string]interface{}{
 			"service":    "be_saham_go",
@@ -29,5 +28,4 @@ func (r *Router) setupPublicRoutes(apiGroup *echo.Group) {
 		// This endpoint intentionally panics to test the recover middleware
 		panic("Test panic for middleware testing")
 	})
-
 }

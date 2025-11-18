@@ -1,10 +1,9 @@
 package router
 
 import (
-	"net/http"
-
-	"github.com/WahyuSiddarta/be_saham_go/helper"
+	"github.com/WahyuSiddarta/be_saham_go/api"
 	"github.com/WahyuSiddarta/be_saham_go/middleware"
+	"github.com/WahyuSiddarta/be_saham_go/validator"
 	"github.com/labstack/echo/v4"
 )
 
@@ -15,44 +14,47 @@ func (r *Router) setupProtectedRoutes(apiGroup *echo.Group) {
 	// Add authentication middleware to protected routes
 	rprotected.Use(middleware.RequireAuth())
 
-	// Example protected endpoint - accessible at /api/protected/profile
-	rprotected.GET("/profile", func(c echo.Context) error {
-		profileData := map[string]interface{}{
-			"user_id": 1,
-			"email":   "user@example.com",
-			"role":    "user",
-		}
-		return helper.JsonResponse(c, http.StatusOK, profileData)
-	})
+	// Initialize auth handlers
+	authHandlers := api.NewAuthHandlers()
 
-	// Example: Stock endpoints - these will be accessible at /api/protected/stocks/*
-	stockGroup := rprotected.Group("/stocks")
-	stockGroup.GET("", func(c echo.Context) error {
-		stocksData := []interface{}{
-			map[string]interface{}{
-				"id":     1,
-				"symbol": "BBCA",
-				"name":   "Bank Central Asia",
-				"price":  10000,
-			},
-			map[string]interface{}{
-				"id":     2,
-				"symbol": "BBRI",
-				"name":   "Bank Rakyat Indonesia",
-				"price":  5000,
-			},
-		}
-		return helper.JsonResponse(c, http.StatusOK, stocksData)
-	})
-	stockGroup.GET("/:id", func(c echo.Context) error {
-		id := c.Param("id")
-		stockData := map[string]interface{}{
-			"id":     id,
-			"symbol": "BBCA",
-			"name":   "Bank Central Asia",
-			"price":  10000,
-			"change": "+2.5%",
-		}
-		return helper.JsonResponse(c, http.StatusOK, stockData)
-	})
+	// Setup user routes
+	r.setupUserRoutes(rprotected, authHandlers)
+
+	// Setup admin routes
+	r.setupAdminRoutes(rprotected, authHandlers)
+}
+
+// setupUserRoutes configures user profile and auth endpoints
+func (r *Router) setupUserRoutes(rprotected *echo.Group, authHandlers *api.AuthHandlers) {
+	userGroup := rprotected.Group("/user")
+
+	// Get current user profile - accessible at /api/protected/user/profile
+	userGroup.GET("/profile", authHandlers.GetProfile)
+
+	// User logout - accessible at /api/protected/user/logout
+	userGroup.POST("/logout", authHandlers.Logout)
+}
+
+// setupAdminRoutes configures admin routes (admin authentication required)
+func (r *Router) setupAdminRoutes(rprotected *echo.Group, authHandlers *api.AuthHandlers) {
+	adminGroup := rprotected.Group("/admin")
+	adminGroup.Use(middleware.AdminRequired())
+
+	// User management endpoints
+	usersGroup := adminGroup.Group("/users")
+
+	// Get all users with pagination and filters - accessible at /api/protected/admin/users
+	usersGroup.GET("", authHandlers.GetAllUsers, validator.ValidateQuery(&validator.GetUsersQuery{}))
+
+	// Update user level - accessible at /api/protected/admin/users/:id/level
+	usersGroup.PUT("/:id/level", authHandlers.UpdateUserLevel, validator.ValidateRequest(&validator.UpdateUserLevelRequest{}))
+
+	// Update user status - accessible at /api/protected/admin/users/:id/status
+	usersGroup.PUT("/:id/status", authHandlers.UpdateUserStatus, validator.ValidateRequest(&validator.UpdateUserStatusRequest{}))
+
+	// Get expired users - accessible at /api/protected/admin/users/expired
+	usersGroup.GET("/expired", authHandlers.GetExpiredUsers)
+
+	// Downgrade expired users - accessible at /api/protected/admin/users/downgrade-expired
+	usersGroup.POST("/downgrade-expired", authHandlers.DowngradeExpiredUsers)
 }
