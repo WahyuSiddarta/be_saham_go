@@ -3,36 +3,29 @@ package router
 import (
 	"github.com/WahyuSiddarta/be_saham_go/api"
 	"github.com/WahyuSiddarta/be_saham_go/middleware"
+	"github.com/WahyuSiddarta/be_saham_go/models"
 	"github.com/WahyuSiddarta/be_saham_go/validator"
 	"github.com/labstack/echo/v4"
 )
 
 // setupProtectedRoutes configures routes that require authentication
 func (r *Router) setupProtectedRoutes(apiGroup *echo.Group) {
-	rprotected := apiGroup.Group("/protected")
-
-	// Add authentication middleware to protected routes
-	rprotected.Use(middleware.RequireAuth())
-
 	// Initialize auth handlers
 	authHandlers := api.NewAuthHandlers()
 
-	// Setup user routes
-	r.setupUserRoutes(rprotected, authHandlers)
-
-	// Setup admin routes
-	r.setupAdminRoutes(rprotected, authHandlers)
-}
-
-// setupUserRoutes configures user profile and auth endpoints
-func (r *Router) setupUserRoutes(rprotected *echo.Group, authHandlers *api.AuthHandlers) {
-	userGroup := rprotected.Group("/user")
+	userGroup := apiGroup.Group("/users")
+	// Add authentication middleware to protected routes
+	userGroup.Use(middleware.RequireAuth())
 
 	// Get current user profile - accessible at /api/protected/user/profile
 	userGroup.GET("/profile", authHandlers.GetProfile)
 
-	// User logout - accessible at /api/protected/user/logout
-	userGroup.POST("/logout", authHandlers.Logout)
+	// Setup portfolio routes (includes PnL)
+	setupPortfolioRoutes(userGroup)
+
+	// Setup admin routes
+	r.setupAdminRoutes(apiGroup, authHandlers)
+
 }
 
 // setupAdminRoutes configures admin routes (admin authentication required)
@@ -55,6 +48,40 @@ func (r *Router) setupAdminRoutes(rprotected *echo.Group, authHandlers *api.Auth
 	// Get expired users - accessible at /api/protected/admin/users/expired
 	usersGroup.GET("/expired", authHandlers.GetExpiredUsers)
 
-	// Downgrade expired users - accessible at /api/protected/admin/users/downgrade-expired
-	usersGroup.POST("/downgrade-expired", authHandlers.DowngradeExpiredUsers)
+}
+
+// setupPortfolioRoutes configures portfolio cash routes
+func setupPortfolioRoutes(rprotected *echo.Group) {
+	portfolioGroup := rprotected.Group("/portfolio")
+
+	// Initialize portfolio handlers
+	portfolioRepo := models.NewPortfolioCashRepository()
+	portfolioHandlers := api.NewPortfolioCashHandlers(portfolioRepo)
+
+	// Create cash portfolio - accessible at /api/protected/portfolio/cash
+	portfolioGroup.POST("/cash", portfolioHandlers.CreateCashPortfolio, validator.ValidateRequest(&validator.CreatePortfolioCashRequest{}))
+
+	// Get all cash portfolios - accessible at /api/protected/portfolio/cash
+	portfolioGroup.GET("/cash", portfolioHandlers.GetMyCashPortfolios)
+
+	// Update cash portfolio - accessible at /api/protected/portfolio/cash/:id
+	portfolioGroup.PUT("/cash/:id", portfolioHandlers.UpdateCashPortfolio, validator.ValidateRequest(&validator.UpdatePortfolioCashRequest{}))
+
+	// Delete cash portfolio - accessible at /api/protected/portfolio/cash/:id
+	portfolioGroup.DELETE("/cash/:id", portfolioHandlers.DeleteCashPortfolio)
+
+	// Move asset between portfolios - accessible at /api/protected/portfolio/move-asset
+	portfolioGroup.POST("/move-asset", portfolioHandlers.MoveAsset, validator.ValidateRequest(&validator.MoveAssetRequest{}))
+
+	// Realize cash portfolio - accessible at /api/protected/portfolio/realize
+	portfolioGroup.POST("/realize", portfolioHandlers.RealizeCashPortfolio, validator.ValidateRequest(&validator.RealizeCashPortfolioRequest{}))
+
+	// PnL sub-routes under portfolio
+	pnlGroup := portfolioGroup.Group("/cash/pnl")
+	pnlGroup.GET("", portfolioHandlers.GetPnlRealizedCash)
+	pnlGroup.GET("/portfolio/:portfolioId", portfolioHandlers.GetPnlByPortfolioCashID)
+	pnlGroup.GET("/:id", portfolioHandlers.GetPnlById)
+	pnlGroup.POST("", portfolioHandlers.CreatePnlRealizedCash, validator.ValidateRequest(&validator.CreatePnlRealizedCashRequest{}))
+	pnlGroup.PUT("/:id", portfolioHandlers.UpdatePnlRealizedCash, validator.ValidateRequest(&validator.UpdatePnlRealizedCashRequest{}))
+	pnlGroup.DELETE("/:id", portfolioHandlers.DeletePnlRealizedCash)
 }

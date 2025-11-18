@@ -131,16 +131,18 @@ func ValidateRequest(requestType interface{}) echo.MiddlewareFunc {
 
 			// Bind request body to struct
 			if err := c.Bind(req); err != nil {
-				return helper.ErrorResponse(c, http.StatusBadRequest, "Format request tidak valid", err.Error())
+				if helper.Logger != nil {
+					helper.Logger.Warn().Err(err).Msg("Format request tidak valid saat binding")
+				}
+				return helper.ErrorResponse(c, http.StatusBadRequest, "Format request tidak valid", nil)
 			}
 
 			// Validate the struct
 			if errs := ValidateStruct(req); len(errs) > 0 {
-				return helper.ErrorResponse(c, http.StatusBadRequest, "Kesalahan validasi", ValidationErrorResponse{
-					Success: false,
-					Message: "Kesalahan validasi",
-					Errors:  errs,
-				})
+				if helper.Logger != nil {
+					helper.Logger.Warn().Int("error_count", len(errs)).Msg("Kesalahan validasi request")
+				}
+				return helper.ErrorResponse(c, http.StatusBadRequest, "Kesalahan validasi", errs)
 			}
 
 			// Store validated request in context
@@ -159,16 +161,18 @@ func ValidateQuery(queryType interface{}) echo.MiddlewareFunc {
 
 			// Bind query parameters to struct
 			if err := c.Bind(query); err != nil {
-				return helper.ErrorResponse(c, http.StatusBadRequest, "Parameter query tidak valid", err.Error())
+				if helper.Logger != nil {
+					helper.Logger.Warn().Err(err).Msg("Parameter query tidak valid saat binding")
+				}
+				return helper.ErrorResponse(c, http.StatusBadRequest, "Parameter query tidak valid", nil)
 			}
 
 			// Validate the struct
 			if errs := ValidateStruct(query); len(errs) > 0 {
-				return helper.ErrorResponse(c, http.StatusBadRequest, "Kesalahan validasi query", ValidationErrorResponse{
-					Success: false,
-					Message: "Kesalahan validasi query",
-					Errors:  errs,
-				})
+				if helper.Logger != nil {
+					helper.Logger.Warn().Int("error_count", len(errs)).Msg("Kesalahan validasi query")
+				}
+				return helper.ErrorResponse(c, http.StatusBadRequest, "Kesalahan validasi query", errs)
 			}
 
 			// Store validated query in context

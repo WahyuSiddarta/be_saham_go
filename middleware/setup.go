@@ -18,9 +18,7 @@ func SetupGlobalMiddleware(e *echo.Echo) {
 	// Log middleware setup status
 	LogCORSStatus()
 
-	if Logger != nil {
-		Logger.Info().Msg("Global middleware configured: Panic Recovery, Request Logging, CORS")
-	}
+	Logger.Info().Msg("Global middleware configured: Panic Recovery, Request Logging, CORS")
 }
 
 // SetupAPIMiddleware configures middleware specifically for API routes
@@ -32,7 +30,5 @@ func SetupAPIMiddleware(apiGroup *echo.Group) {
 	// Log rate limiting status
 	LogRateLimitStatus()
 
-	if Logger != nil {
-		Logger.Info().Msg("API middleware configured: Rate Limiting")
-	}
+	Logger.Info().Msg("API middleware configured: Rate Limiting")
 }

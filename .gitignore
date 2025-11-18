@@ -95,3 +95,6 @@ docs/
 # Build artifacts
 *.tar.gz
 *.zip
+
+be_saham_go
+main

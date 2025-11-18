@@ -119,29 +119,33 @@ func AuthMiddleware() echo.MiddlewareFunc {
 			authHeader := c.Request().Header.Get("Authorization")
 			token, err := ExtractTokenFromHeader(authHeader)
 			if err != nil {
-				return helper.ErrorResponse(c, http.StatusUnauthorized, "Otorisasi diperlukan", err.Error())
+				Logger.Error().Err(err).Msg("[AuthMiddleware] Invalid authorization header")
+				return helper.ErrorResponse(c, http.StatusUnauthorized, "Otorisasi diperlukan", nil)
 			}
 
 			// Validate token
 			claims, err := ValidateToken(token)
 			if err != nil {
-				return helper.ErrorResponse(c, http.StatusUnauthorized, "Token tidak valid", err.Error())
+				Logger.Error().Err(err).Msg("[AuthMiddleware] Token validation failed")
+				return helper.ErrorResponse(c, http.StatusUnauthorized, "Token tidak valid", nil)
 			}
 
 			// Get user from database to ensure user still exists and get current data
 			userRepo := models.NewUserRepository()
 			user, err := userRepo.FindByID(claims.UserID)
 			if err != nil {
-				return helper.ErrorResponse(c, http.StatusInternalServerError, "Gagal mengambil data pengguna", err.Error())
+				Logger.Error().Err(err).Msg("[AuthMiddleware] Gagal mengambil data pengguna")
+				return helper.ErrorResponse(c, http.StatusInternalServerError, "Gagal mengambil data pengguna", nil)
 			}
 
 			if user == nil {
-				return helper.ErrorResponse(c, http.StatusUnauthorized, "Pengguna tidak ditemukan", "Pengguna yang terkait dengan token ini tidak ada lagi")
+				Logger.Warn().Msg("[AuthMiddleware] Pengguna tidak ditemukan untuk token")
+				return helper.ErrorResponse(c, http.StatusUnauthorized, "Pengguna tidak ditemukan", nil)
 			}
 
 			// Check if user is active
 			if user.Status != models.UserStatusActive {
-				return helper.ErrorResponse(c, http.StatusForbidden, "Account access denied", fmt.Sprintf("Account status: %s", user.Status))
+				return helper.ErrorResponse(c, http.StatusForbidden, "Account access denied", nil)
 			}
 
 			// Store authenticated user data in context
@@ -173,17 +177,18 @@ func RequirePremium() echo.MiddlewareFunc {
 			// Get authenticated user from context
 			authUser, ok := c.Get("user").(*AuthUser)
 			if !ok {
-				return helper.ErrorResponse(c, http.StatusUnauthorized, "Authentication required", "Please authenticate first")
+				Logger.Warn().Msg("[RequirePremium] Missing authenticated user in context")
+				return helper.ErrorResponse(c, http.StatusUnauthorized, "Authentication required", nil)
 			}
 
 			// Check if user has premium subscription
 			if authUser.UserLevel == models.UserLevelFree {
-				return helper.ErrorResponse(c, http.StatusForbidden, "Premium subscription required", "This feature requires a premium subscription")
+				return helper.ErrorResponse(c, http.StatusForbidden, "Premium subscription required", nil)
 			}
 
 			// Check if premium subscription has expired
 			if authUser.PremiumExpiresAt != nil && authUser.PremiumExpiresAt.Before(time.Now()) {
-				return helper.ErrorResponse(c, http.StatusForbidden, "Premium subscription expired", "Your premium subscription has expired. Please renew to access this feature")
+				return helper.ErrorResponse(c, http.StatusForbidden, "Premium subscription expired", nil)
 			}
 
 			return next(c)
@@ -198,17 +203,21 @@ func RequirePremiumPlus() echo.MiddlewareFunc {
 			// Get authenticated user from context
 			authUser, ok := c.Get("user").(*AuthUser)
 			if !ok {
-				return helper.ErrorResponse(c, http.StatusUnauthorized, "Authentication required", "Please authenticate first")
+				Logger.Warn().Msg("[RequirePremiumPlus] Missing authenticated user in context")
+				return helper.ErrorResponse(c, http.StatusUnauthorized, "Authentication required", nil)
 			}
 
 			// Check if user has premium+ subscription
 			if authUser.UserLevel != models.UserLevelPremiumPlus {
-				return helper.ErrorResponse(c, http.StatusForbidden, "Premium+ subscription required", "This feature requires a premium+ subscription")
+				Logger.Warn().Str("user_level", string(authUser.UserLevel)).Msg("[RequirePremiumPlus] Non-premium+ user attempted premium+ route")
+				return helper.ErrorResponse(c, http.StatusForbidden, "Premium+ subscription required", nil)
 			}
 
 			// Check if premium+ subscription has expired
 			if authUser.PremiumExpiresAt != nil && authUser.PremiumExpiresAt.Before(time.Now()) {
-				return helper.ErrorResponse(c, http.StatusForbidden, "Premium+ subscription expired", "Your premium+ subscription has expired. Please renew to access this feature")
+				Logger.Warn().Str("user_level", string(authUser.UserLevel)).Msg("[RequirePremiumPlus] Premium+ subscription expired")
+
+				return helper.ErrorResponse(c, http.StatusForbidden, "Premium+ subscription expired", nil)
 			}
 
 			return next(c)
@@ -298,7 +307,8 @@ func AdminRequired() echo.MiddlewareFunc {
 
 			authUser, err := GetAuthUser(c)
 			if err != nil {
-				return helper.ErrorResponse(c, http.StatusUnauthorized, "Authentication required", "Please authenticate first")
+				Logger.Warn().Err(err).Msg("[AdminRequired] Authentication required")
+				return helper.ErrorResponse(c, http.StatusUnauthorized, "Authentication required", nil)
 			}
 
 			// TODO: Implement proper admin role checking
@@ -315,7 +325,8 @@ func AdminRequired() echo.MiddlewareFunc {
 			}
 
 			if !isAdmin {
-				return helper.ErrorResponse(c, http.StatusForbidden, "Admin access required", "This endpoint requires admin privileges")
+				Logger.Warn().Str("email", authUser.Email).Msg("[AdminRequired] Non-admin user attempted admin route")
+				return helper.ErrorResponse(c, http.StatusForbidden, "Admin access required", nil)
 			}
 
 			return next(c)

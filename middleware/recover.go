@@ -91,7 +91,7 @@ func RecoverWithConfig(config RecoverConfig, logger *zerolog.Logger) echo.Middle
 					// Ensure response is not already written
 					if !c.Response().Committed {
 						// Try to return a proper HTTP error response
-						if err := helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan internal server", "Tim teknis sedang menangani masalah ini"); err != nil {
+						if err := helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan internal server", nil); err != nil {
 							logger.Error().Msgf("Failed to send error response: %v", err)
 						}
 					}

@@ -55,6 +55,7 @@ const (
 	UserLevelFree        UserLevel = "free"
 	UserLevelPremium     UserLevel = "premium"
 	UserLevelPremiumPlus UserLevel = "premium+"
+	UserLevelAdmin       UserLevel = "admin"
 )
 
 // Scan implements the sql.Scanner interface
@@ -352,20 +353,6 @@ func (r *userRepository) UpdateUserLevel(userID int, userLevel UserLevel, paymen
 
 		premiumExpiresAt = &baseDate
 
-		if Logger != nil {
-			action := "activated"
-			if hasValidSubscription {
-				action = "extended"
-			}
-			Logger.Info().
-				Str("action", action).
-				Int("userId", userID).
-				Str("previousLevel", string(currentUser.UserLevel)).
-				Str("newLevel", string(userLevel)).
-				Time("newExpiration", *premiumExpiresAt).
-				Bool("isExtension", hasValidSubscription).
-				Msg("Premium subscription updated")
-		}
 	}
 
 	// Update user level

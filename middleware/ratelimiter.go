@@ -72,11 +72,9 @@ func (rl *RateLimiter) Middleware() echo.MiddlewareFunc {
 			// Check if request is allowed
 			if !limiter.Allow() {
 				// Log rate limit exceeded
-				if Logger != nil {
-					Logger.Warn().Str("ip", ip).Str("path", c.Request().URL.Path).Msg("Rate limit exceeded")
-				}
+				Logger.Warn().Str("ip", ip).Str("path", c.Request().URL.Path).Msg("Rate limit exceeded")
 
-				return helper.ErrorResponse(c, http.StatusTooManyRequests, "Terlalu banyak permintaan", "Silakan coba lagi beberapa saat")
+				return helper.ErrorResponse(c, http.StatusTooManyRequests, "Terlalu banyak permintaan, Silakan coba lagi beberapa saat", nil)
 			}
 
 			return next(c)

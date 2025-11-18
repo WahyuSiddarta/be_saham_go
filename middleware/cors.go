@@ -30,14 +30,10 @@ func LogCORSStatus() {
 	corsConfig := config.Get().CORS
 
 	if corsConfig.Enabled {
-		if Logger != nil {
-			Logger.Info().
-				Strs("allowed_origins", corsConfig.AllowedOrigins).
-				Msg("CORS middleware enabled")
-		}
+		Logger.Info().
+			Strs("allowed_origins", corsConfig.AllowedOrigins).
+			Msg("CORS middleware enabled")
 	} else {
-		if Logger != nil {
-			Logger.Info().Msg("CORS middleware disabled")
-		}
+		Logger.Info().Msg("CORS middleware disabled")
 	}
 }
