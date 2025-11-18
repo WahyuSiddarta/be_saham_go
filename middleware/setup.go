@@ -1,0 +1,38 @@
+package middleware
+
+import (
+	"github.com/labstack/echo/v4"
+)
+
+// SetupGlobalMiddleware configures all global middleware for the Echo instance
+func SetupGlobalMiddleware(e *echo.Echo) {
+	// Add panic recovery middleware (should be first for safety)
+	e.Use(Recover())
+
+	// Add request logging middleware
+	e.Use(RequestLogger())
+
+	// Add CORS middleware
+	e.Use(ConfigureCORS())
+
+	// Log middleware setup status
+	LogCORSStatus()
+
+	if Logger != nil {
+		Logger.Info().Msg("Global middleware configured: Panic Recovery, Request Logging, CORS")
+	}
+}
+
+// SetupAPIMiddleware configures middleware specifically for API routes
+func SetupAPIMiddleware(apiGroup *echo.Group) {
+	// Add rate limiting to all API routes
+	rateLimiter := NewRateLimiter()
+	apiGroup.Use(rateLimiter.Middleware())
+
+	// Log rate limiting status
+	LogRateLimitStatus()
+
+	if Logger != nil {
+		Logger.Info().Msg("API middleware configured: Rate Limiting")
+	}
+}
