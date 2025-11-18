@@ -366,6 +366,11 @@ func (r *portfolioCashRepository) MoveAsset(sourceID int, targetID int, userID i
 		}
 		return nil, fmt.Errorf("kesalahan menemukan portfolio target: %w", err)
 	}
+	// Check status
+	if targetPortfolio.Status != "active" {
+		tx.Rollback()
+		return nil, fmt.Errorf("portfolio target harus memiliki status 'active' untuk dipindahkan")
+	}
 
 	if sourceID == targetID {
 		tx.Rollback()
@@ -433,7 +438,8 @@ func (r *portfolioCashRepository) RealizeCashPortfolio(
 	var pnl PortfolioPnlRealizedCash
 	err = tx.QueryRowx(`INSERT INTO portfolio_pnl_realized_cash (user_id, portfolio_cash_id, amount, realized_at, created_at, updated_at) 
 		VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
-		RETURNING *`,
+		RETURNING id, user_id, portfolio_cash_id,amount,realized_at,
+		created_at,updated_at,deleted_at`,
 		userID, portfolioID, pnlAmount, realizedAt).StructScan(&pnl)
 	if err != nil {
 		tx.Rollback()
@@ -489,7 +495,7 @@ LIMIT $2 OFFSET $3
 `
 
 	var pnlEntries []*PortfolioPnlRealizedCash
-	err = db.Select(&pnlEntries, query, userID, limit, offset)
+	err = db.Select(&pnlEntries, query, userID, limit+1, offset)
 	if err != nil {
 		Logger.Error().Err(err).Msg("[PortfolioCash.FindPnlByUserID] Error finding PnL entries by user ID")
 		return nil, fmt.Errorf("kesalahan mengambil data PnL: %w", err)

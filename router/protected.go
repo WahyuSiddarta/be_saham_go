@@ -29,7 +29,7 @@ func setupAdminRoutes(rprotected *echo.Group, authHandlers *api.AuthHandlers) {
 	adminGroup := rprotected.Group("/admin")
 	adminGroup.Use(middleware.AdminRequired())
 
-	// User management endpoints, accessible at /api//admin/users
+	// User management endpoints, accessible at /api/admin/users
 	usersGroup := adminGroup.Group("/users")
 	usersGroup.GET("", authHandlers.GetAllUsers, validator.ValidateQuery(&validator.GetUsersQuery{}))
 	usersGroup.PUT("/:id/level", authHandlers.UpdateUserLevel, validator.ValidateRequest(&validator.UpdateUserLevelRequest{}))
@@ -49,7 +49,7 @@ func setupCashPortfolioRoutes(portfolioGroup *echo.Group) {
 	cashGroup.GET("", portfolioHandlers.GetMyCashPortfolios)
 	cashGroup.PUT("/:id", portfolioHandlers.UpdateCashPortfolio, validator.ValidateRequest(&validator.UpdatePortfolioCashRequest{}))
 	cashGroup.DELETE("/:id", portfolioHandlers.DeleteCashPortfolio)
-	cashGroup.POST("/move-asset", portfolioHandlers.MoveAsset, validator.ValidateRequest(&validator.MoveAssetRequest{}))
+	cashGroup.POST("/move", portfolioHandlers.MoveAsset, validator.ValidateRequest(&validator.MoveAssetRequest{}))
 	cashGroup.POST("/realize", portfolioHandlers.RealizeCashPortfolio, validator.ValidateRequest(&validator.RealizeCashPortfolioRequest{}))
 
 	// PnL sub-routes under portfolio /api/users/portfolio/cash/pnl

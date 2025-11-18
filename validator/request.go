@@ -133,7 +133,7 @@ type RealizeCashPortfolioRequest struct {
 	PortfolioCashID int     `json:"portfolio_cash_id" validate:"required,gt=0"`
 	FinalSaldo      float64 `json:"final_saldo" validate:"required"`
 	Amount          float64 `json:"amount" validate:"required"`
-	RealizedAt      string  `json:"realized_at" validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
+	RealizedAt      string  `json:"realized_at" validate:"required,datetime=2006-01-02"`
 }
 
 // PnL Requests

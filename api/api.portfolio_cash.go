@@ -177,8 +177,9 @@ func (h *PortfolioCashHandlers) RealizeCashPortfolio(c echo.Context) error {
 	}
 
 	// Parse realized at date
-	realizedAt, err := time.Parse(time.RFC3339, req.RealizedAt)
+	realizedAt, err := time.Parse("2006-01-02", req.RealizedAt)
 	if err != nil {
+		Logger.Error().Err(err).Msg("[RealizeCashPortfolio] Invalid realized at date format")
 		return helper.ErrorResponse(c, http.StatusBadRequest, "Format tanggal realisasi tidak valid", nil)
 	}
 
@@ -216,10 +217,19 @@ func (h *PortfolioCashHandlers) GetPnlRealizedCash(c echo.Context) error {
 		pnlEntries = []*models.PortfolioPnlRealizedCash{}
 	}
 
+	hasNextData := false
+	if len(pnlEntries) > limit {
+		pnlEntries = pnlEntries[:limit]
+		hasNextData = true
+	}
+
 	return helper.JsonResponse(c, http.StatusOK, map[string]interface{}{
 		"entries": pnlEntries,
-		"limit":   limit,
-		"offset":  offset,
+		"pagination": map[string]interface{}{
+			"limit":       limit,
+			"offset":      offset,
+			"hasNextData": hasNextData,
+		},
 	})
 }
 
