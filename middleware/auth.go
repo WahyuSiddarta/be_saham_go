@@ -160,6 +160,9 @@ func AuthMiddleware() echo.MiddlewareFunc {
 			c.Set("user", authUser)
 			c.Set("user_id", user.ID)
 
+			// Set user context in Sentry for error tracking
+			SetUserContext(c, user.ID, user.Email)
+
 			return next(c)
 		}
 	}

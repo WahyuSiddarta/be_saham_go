@@ -15,9 +15,13 @@ var Logger *zerolog.Logger
 // Config holds all configuration for our application
 type Config struct {
 	// Server Configuration
-	Port     string
-	Env      string
-	LogLevel string
+	Port       string
+	Env        string
+	LogLevel   string
+	AppVersion string
+
+	// Sentry Configuration
+	SentryDSN string
 
 	// JWT Configuration
 	JWT JWTConfig
@@ -85,9 +89,11 @@ func Load() (*Config, error) {
 	}
 
 	config = &Config{
-		Port:     getEnv("PORT", "8080"),
-		Env:      getEnv("ENV", "development"),
-		LogLevel: getEnv("LOG_LEVEL", "info"),
+		Port:       getEnv("PORT", "8080"),
+		Env:        getEnv("ENV", "development"),
+		LogLevel:   getEnv("LOG_LEVEL", "info"),
+		AppVersion: getEnv("APP_VERSION", "1.0.0"),
+		SentryDSN:  getEnv("SENTRY_DSN", ""),
 		JWT: JWTConfig{
 			Secret:    getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-in-production"),
 			ExpiresIn: getEnv("JWT_EXPIRES_IN", "24h"),

@@ -57,6 +57,9 @@ func RecoverWithConfig(config RecoverConfig, logger *zerolog.Logger) echo.Middle
 					// Log the error immediately
 					logger.Error().Msgf("PANIC RECOVERED: %s\nStack trace:\n%s", e.Error(), errorMessage)
 
+					// Capture panic in Sentry
+					CaptureRecovery(c, e, errorMessage)
+
 					// TODO: Telegram notification (commented out for now)
 					// Uncomment and configure the following block to enable telegram notifications:
 					/*

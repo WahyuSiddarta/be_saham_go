@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/WahyuSiddarta/be_saham_go/helper"
+	"github.com/WahyuSiddarta/be_saham_go/middleware"
 	"github.com/WahyuSiddarta/be_saham_go/models"
 	"github.com/WahyuSiddarta/be_saham_go/validator"
 	"github.com/labstack/echo/v4"
@@ -70,6 +71,7 @@ func (h *PortfolioBondHandlers) CreateBondPortfolio(c echo.Context) error {
 	result, err := h.bondRepo.Create(userID, payload)
 	if err != nil {
 		Logger.Error().Err(err).Msg("[CreateBondPortfolio] Error creating bond portfolio")
+		middleware.CaptureError(c, err, map[string]string{"handler": "CreateBondPortfolio"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
 
@@ -86,6 +88,7 @@ func (h *PortfolioBondHandlers) GetMyBondPortfolios(c echo.Context) error {
 	portfolios, err := h.bondRepo.FindByUserID(userID)
 	if err != nil {
 		Logger.Error().Err(err).Msg("[GetMyBondPortfolios] Error fetching bond portfolios")
+		middleware.CaptureError(c, err, map[string]string{"handler": "GetMyBondPortfolios"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
 
@@ -111,6 +114,7 @@ func (h *PortfolioBondHandlers) UpdateMarketPriceOverride(c echo.Context) error 
 
 	if _, err := h.bondRepo.UpdateMarketPriceOverride(portfolioID, userID, req.MarketPriceOverride); err != nil {
 		Logger.Error().Err(err).Msg("[UpdateMarketPriceOverride] Error updating override")
+		middleware.CaptureError(c, err, map[string]string{"handler": "UpdateMarketPriceOverride"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
 
@@ -163,6 +167,7 @@ func (h *PortfolioBondHandlers) UpdateBondPortfolio(c echo.Context) error {
 	result, err := h.bondRepo.Update(portfolioID, userID, payload)
 	if err != nil {
 		Logger.Error().Err(err).Msg("[UpdateBondPortfolio] Error updating bond portfolio")
+		middleware.CaptureError(c, err, map[string]string{"handler": "UpdateBondPortfolio"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
 
@@ -188,6 +193,7 @@ func (h *PortfolioBondHandlers) DeleteBondPortfolio(c echo.Context) error {
 	err = h.bondRepo.Delete(portfolioID, userID)
 	if err != nil {
 		Logger.Error().Err(err).Msg("[DeleteBondPortfolio] Error deleting bond portfolio")
+		middleware.CaptureError(c, err, map[string]string{"handler": "DeleteBondPortfolio"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
 
@@ -220,6 +226,7 @@ func (h *PortfolioBondHandlers) CreateCoupon(c echo.Context) error {
 	result, err := h.couponRepo.Create(userID, payload)
 	if err != nil {
 		Logger.Error().Err(err).Msg("[CreateCoupon] Error creating coupon")
+		middleware.CaptureError(c, err, map[string]string{"handler": "CreateCoupon"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
 
@@ -241,6 +248,7 @@ func (h *PortfolioBondHandlers) GetCouponsByBond(c echo.Context) error {
 	coupons, err := h.couponRepo.FindByPortfolioBondID(userID, portfolioBondID)
 	if err != nil {
 		Logger.Error().Err(err).Msg("[GetCouponsByBond] Error fetching coupons")
+		middleware.CaptureError(c, err, map[string]string{"handler": "GetCouponsByBond"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
 
@@ -277,6 +285,7 @@ func (h *PortfolioBondHandlers) UpdateCoupon(c echo.Context) error {
 	result, err := h.couponRepo.Update(couponID, userID, payload)
 	if err != nil {
 		Logger.Error().Err(err).Msg("[UpdateCoupon] Error updating coupon")
+		middleware.CaptureError(c, err, map[string]string{"handler": "UpdateCoupon"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
 
@@ -302,6 +311,7 @@ func (h *PortfolioBondHandlers) DeleteCoupon(c echo.Context) error {
 	err = h.couponRepo.Delete(couponID, userID)
 	if err != nil {
 		Logger.Error().Err(err).Msg("[DeleteCoupon] Error deleting coupon")
+		middleware.CaptureError(c, err, map[string]string{"handler": "DeleteCoupon"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
 
@@ -333,6 +343,7 @@ func (h *PortfolioBondHandlers) CreateRealizedBond(c echo.Context) error {
 	result, err := h.realizedRepo.Create(userID, payload)
 	if err != nil {
 		Logger.Error().Err(err).Msg("[CreateRealizedBond] Error creating realized bond")
+		middleware.CaptureError(c, err, map[string]string{"handler": "CreateRealizedBond"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
 
@@ -351,6 +362,7 @@ func (h *PortfolioBondHandlers) GetRealizedBonds(c echo.Context) error {
 	entries, err := h.realizedRepo.FindByUserID(userID, limit, offset)
 	if err != nil {
 		Logger.Error().Err(err).Msg("[GetRealizedBonds] Error fetching realized bonds")
+		middleware.CaptureError(c, err, map[string]string{"handler": "GetRealizedBonds"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
 
@@ -387,6 +399,7 @@ func (h *PortfolioBondHandlers) GetRealizedBondsByPortfolioId(c echo.Context) er
 	entries, err := h.realizedRepo.FindByPortfolioBondID(userID, portfolioBondID, limit, offset)
 	if err != nil {
 		Logger.Error().Err(err).Msg("[GetRealizedBondsByPortfolioId] Error fetching realized bonds")
+		middleware.CaptureError(c, err, map[string]string{"handler": "GetRealizedBondsByPortfolioId"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
 
@@ -435,6 +448,7 @@ func (h *PortfolioBondHandlers) UpdateRealizedBond(c echo.Context) error {
 	result, err := h.realizedRepo.Update(realizedID, userID, payload)
 	if err != nil {
 		Logger.Error().Err(err).Msg("[UpdateRealizedBond] Error updating realized bond")
+		middleware.CaptureError(c, err, map[string]string{"handler": "UpdateRealizedBond"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
 
@@ -460,6 +474,7 @@ func (h *PortfolioBondHandlers) DeleteRealizedBond(c echo.Context) error {
 	err = h.realizedRepo.Delete(realizedID, userID)
 	if err != nil {
 		Logger.Error().Err(err).Msg("[DeleteRealizedBond] Error deleting realized bond")
+		middleware.CaptureError(c, err, map[string]string{"handler": "DeleteRealizedBond"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
 
