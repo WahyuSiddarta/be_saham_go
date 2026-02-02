@@ -102,7 +102,7 @@ func initializeSystem() *api.API {
 		Logger.Info().Msg("Sentry DSN not configured, skipping Sentry initialization")
 	}
 
-	// Create Echo instance
+	// /Volumes/KyoMac/Users/wahyusiddarta/Code/saham/CapitalSight-fe/datasourceeate Echo instance
 	Logger.Info().Msg("System initialization started - 4 / 7 - Echo instance created")
 	echoInstance := echo.New()
 
