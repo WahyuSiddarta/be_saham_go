@@ -54,7 +54,7 @@ func (h *PortfolioCashHandlers) CreateCashPortfolio(c echo.Context) error {
 		req.Category,
 	)
 	if err != nil {
-		Logger.Error().Err(err).Msg("[CreateCashPortfolio] Error creating cash portfolio")
+		Logger.Error().Err(err).Str("API", "CreateCashPortfolio").Msg("Error creating cash portfolio")
 		middleware.CaptureError(c, err, map[string]string{"handler": "CreateCashPortfolio"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -71,7 +71,7 @@ func (h *PortfolioCashHandlers) GetMyCashPortfolios(c echo.Context) error {
 
 	portfolios, err := h.repo.FindByUserID(userID)
 	if err != nil {
-		Logger.Error().Err(err).Msg("[GetMyCashPortfolios] Error fetching cash portfolios")
+		Logger.Error().Err(err).Str("API", "GetMyCashPortfolios").Msg("Error fetching cash portfolios")
 		middleware.CaptureError(c, err, map[string]string{"handler": "GetMyCashPortfolios"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -121,7 +121,7 @@ func (h *PortfolioCashHandlers) UpdateCashPortfolio(c echo.Context) error {
 		req.Category,
 	)
 	if err != nil {
-		Logger.Error().Err(err).Msg("[UpdateCashPortfolio] Error updating cash portfolio")
+		Logger.Error().Err(err).Str("API", "UpdateCashPortfolio").Msg("Error updating cash portfolio")
 		middleware.CaptureError(c, err, map[string]string{"handler": "UpdateCashPortfolio"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -147,7 +147,7 @@ func (h *PortfolioCashHandlers) DeleteCashPortfolio(c echo.Context) error {
 
 	err = h.repo.Delete(portfolioID, userID)
 	if err != nil {
-		Logger.Error().Err(err).Msg("[DeleteCashPortfolio] Error deleting cash portfolio")
+		Logger.Error().Err(err).Str("API", "DeleteCashPortfolio").Msg("Error deleting cash portfolio")
 		middleware.CaptureError(c, err, map[string]string{"handler": "DeleteCashPortfolio"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -166,7 +166,7 @@ func (h *PortfolioCashHandlers) MoveAsset(c echo.Context) error {
 
 	result, err := h.repo.MoveAsset(req.SourcePortfolioID, req.TargetPortfolioID, userID)
 	if err != nil {
-		Logger.Error().Err(err).Msg("[MoveAsset] Error moving asset")
+		Logger.Error().Err(err).Str("API", "MoveAsset").Msg("Error moving asset")
 		middleware.CaptureError(c, err, map[string]string{"handler": "MoveAsset"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -186,7 +186,7 @@ func (h *PortfolioCashHandlers) RealizeCashPortfolio(c echo.Context) error {
 	// Parse realized at date
 	realizedAt, err := time.Parse("2006-01-02", req.RealizedAt)
 	if err != nil {
-		Logger.Error().Err(err).Msg("[RealizeCashPortfolio] Invalid realized at date format")
+		Logger.Error().Err(err).Str("API", "RealizeCashPortfolio").Msg("Invalid realized at date format")
 		return helper.ErrorResponse(c, http.StatusBadRequest, "Format tanggal realisasi tidak valid", nil)
 	}
 
@@ -198,7 +198,7 @@ func (h *PortfolioCashHandlers) RealizeCashPortfolio(c echo.Context) error {
 		realizedAt,
 	)
 	if err != nil {
-		Logger.Error().Err(err).Msg("[RealizeCashPortfolio] Error realizing cash portfolio")
+		Logger.Error().Err(err).Str("API", "RealizeCashPortfolio").Msg("Error realizing cash portfolio")
 		middleware.CaptureError(c, err, map[string]string{"handler": "RealizeCashPortfolio"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -217,7 +217,7 @@ func (h *PortfolioCashHandlers) GetPnlRealizedCash(c echo.Context) error {
 
 	pnlEntries, err := h.repo.FindPnlByUserID(userID, limit, offset)
 	if err != nil {
-		Logger.Error().Err(err).Msg("[GetPnlRealizedCash] Error fetching PnL entries")
+		Logger.Error().Err(err).Str("API", "GetPnlRealizedCash").Msg("Error fetching PnL entries")
 		middleware.CaptureError(c, err, map[string]string{"handler": "GetPnlRealizedCash"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -258,7 +258,7 @@ func (h *PortfolioCashHandlers) GetPnlByPortfolioCashID(c echo.Context) error {
 
 	pnlEntries, err := h.repo.FindPnlByPortfolioCashID(portfolioID, userID, limit, offset)
 	if err != nil {
-		Logger.Error().Err(err).Msg("[GetPnlByPortfolioCashID] Error fetching PnL entries by portfolio")
+		Logger.Error().Err(err).Str("API", "GetPnlByPortfolioCashID").Msg("Error fetching PnL entries by portfolio")
 		middleware.CaptureError(c, err, map[string]string{"handler": "GetPnlByPortfolioCashID"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -288,7 +288,7 @@ func (h *PortfolioCashHandlers) GetPnlById(c echo.Context) error {
 
 	result, err := h.repo.FindPnlByID(pnlID, userID)
 	if err != nil {
-		Logger.Error().Err(err).Msg("[GetPnlById] Error fetching PnL entry")
+		Logger.Error().Err(err).Str("API", "GetPnlById").Msg("Error fetching PnL entry")
 		middleware.CaptureError(c, err, map[string]string{"handler": "GetPnlById"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -321,7 +321,7 @@ func (h *PortfolioCashHandlers) CreatePnlRealizedCash(c echo.Context) error {
 
 	result, err := h.repo.CreatePnlEntry(userID, req.PortfolioCashID, req.Amount, realizedAt)
 	if err != nil {
-		Logger.Error().Err(err).Msg("[CreatePnlRealizedCash] Error creating PnL entry")
+		Logger.Error().Err(err).Str("API", "CreatePnlRealizedCash").Msg("Error creating PnL entry")
 		middleware.CaptureError(c, err, map[string]string{"handler": "CreatePnlRealizedCash"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -355,7 +355,7 @@ func (h *PortfolioCashHandlers) UpdatePnlRealizedCash(c echo.Context) error {
 
 	result, err := h.repo.UpdatePnlEntry(pnlID, userID, &req.Amount, realizedAt)
 	if err != nil {
-		Logger.Error().Err(err).Msg("[UpdatePnlRealizedCash] Error updating PnL entry")
+		Logger.Error().Err(err).Str("API", "UpdatePnlRealizedCash").Msg("Error updating PnL entry")
 		middleware.CaptureError(c, err, map[string]string{"handler": "UpdatePnlRealizedCash"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -381,7 +381,7 @@ func (h *PortfolioCashHandlers) DeletePnlRealizedCash(c echo.Context) error {
 
 	err = h.repo.DeletePnlEntry(pnlID, userID)
 	if err != nil {
-		Logger.Error().Err(err).Msg("[DeletePnlRealizedCash] Error deleting PnL entry")
+		Logger.Error().Err(err).Str("API", "DeletePnlRealizedCash").Msg("Error deleting PnL entry")
 		middleware.CaptureError(c, err, map[string]string{"handler": "DeletePnlRealizedCash"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}

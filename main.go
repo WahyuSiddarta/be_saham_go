@@ -154,9 +154,9 @@ func initializeAPISystem() *api.API {
 	return apiInstance
 }
 
-func initializeCronSystem(configStruct *config.Config) *cron.Runner {
-	cronRunner := cron.NewRunner(Logger, configStruct.Cron.Interval)
-	Logger.Info().Dur("interval", configStruct.Cron.Interval).Msg("Cron initialization completed")
+func initializeCronSystem() *cron.Runner {
+	cronRunner := cron.NewRunner(Logger)
+	Logger.Info().Msg("Cron initialization completed")
 	return cronRunner
 }
 
@@ -164,9 +164,9 @@ func main() {
 	runtime.GOMAXPROCS(2 * runtime.NumCPU())
 	fmt.Println("VCPU Proc :", runtime.NumCPU())
 
-	configStruct := initializeCoreSystem()
+	initializeCoreSystem()
 	apiInstance := initializeAPISystem()
-	cronRunner := initializeCronSystem(configStruct)
+	cronRunner := initializeCronSystem()
 
 	r := router.New(apiInstance, Logger)
 	go func() {

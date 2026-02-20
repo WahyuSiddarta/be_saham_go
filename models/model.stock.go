@@ -143,7 +143,7 @@ func (r *stockRepository) GetStockApiKey() ([]StockInformation, error) {
 		return nil, err
 	}
 
-	const query = `SELECT a.ticker, a.api_key FROM stock a WHERE a.last_update > NOW() - INTERVAL '14 days' AND a.api_key IS NOT NULL`
+	const query = `SELECT a.ticker, a.api_key FROM stock a WHERE a.last_update < NOW() - INTERVAL '14 days' AND a.api_key IS NOT NULL`
 
 	var stocks []StockInformation
 	err = db.Select(&stocks, query)
@@ -206,13 +206,10 @@ func (r *stockRepository) UpsertStockEarningQuarterlyHistory(records []StockEarn
 			$16,
 			$17,
 			$18,
-			$19,
-			$20,
-			$21
+			$19
 		)
-		ON CONFLICT (symbol, period_code)
-		DO UPDATE SET
-
+		ON CONFLICT (symbol, period_code) 
+		DO UPDATE SET 
 			eps_actual = EXCLUDED.eps_actual,
 			eps_surprise = EXCLUDED.eps_surprise,
 			eps_surprise_percent = EXCLUDED.eps_surprise_percent,
@@ -306,8 +303,6 @@ func (r *stockRepository) UpsertStockOverviewMetrics(record *StockOverviewMetric
 	const query = `
 		INSERT INTO stock_overview_metrics (
 			symbol,
-			market,
-			currency,
 			beta,
 			eps,
 			book_value_per_share,
@@ -392,12 +387,10 @@ func (r *stockRepository) UpsertStockOverviewMetrics(record *StockOverviewMetric
 			$41, $42, $43, $44, $45, $46, $47, $48, $49, $50,
 			$51, $52, $53, $54, $55, $56, $57, $58, $59, $60,
 			$61, $62, $63, $64, $65, $66, $67, $68, $69, $70,
-			$71, $72, $73, $74, $75, $76, $77, $78, $79, $80
+			$71, $72, $73, $74, $75, $76
 		)
-		ON CONFLICT (symbol)
-		DO UPDATE SET
-			market = EXCLUDED.market,
-			currency = EXCLUDED.currency,
+		ON CONFLICT (symbol) 
+		DO UPDATE SET 
 			beta = EXCLUDED.beta,
 			eps = EXCLUDED.eps,
 			book_value_per_share = EXCLUDED.book_value_per_share,
