@@ -59,14 +59,14 @@ func (h *AuthHandlers) Login(c echo.Context) error {
 	user, err := h.repo.FindByEmail(req.Email)
 	if err != nil {
 		middleware.CaptureException(c, err)
-		Logger.Error().Err(err).Str("API", "Login").Str("email", req.Email).Msg("Gagal mencari pengguna saat login")
+		Logger.Error().Err(err).Str("api", "Login").Str("email", req.Email).Msg("Gagal mencari pengguna saat login")
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan server", nil)
 	}
 
 	if user == nil {
 		err := errors.New("[login] user not found")
 		middleware.CaptureException(c, err)
-		Logger.Error().Err(err).Str("API", "Login").Str("email", req.Email).Msg("Pengguna tidak ditemukan saat login")
+		Logger.Error().Err(err).Str("api", "Login").Str("email", req.Email).Msg("Pengguna tidak ditemukan saat login")
 		return helper.ErrorResponse(c, http.StatusBadRequest, "Email atau password tidak valid", nil)
 	}
 
@@ -142,7 +142,7 @@ func (h *AuthHandlers) Register(c echo.Context) error {
 			map[string]string{"action": "CreateUser"},
 			map[string]interface{}{"email": req.Email},
 		)
-		Logger.Error().Err(err).Str("API", "Register").Str("email", req.Email).Msg("Gagal membuat pengguna saat registrasi")
+		Logger.Error().Err(err).Str("api", "Register").Str("email", req.Email).Msg("Gagal membuat pengguna saat registrasi")
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan server", nil)
 	}
 
@@ -153,7 +153,7 @@ func (h *AuthHandlers) Register(c echo.Context) error {
 			map[string]string{"action": "generate_token"},
 			nil,
 		)
-		Logger.Error().Err(err).Str("API", "Register").Int("user_id", newUser.ID).Msg("[Register] Gagal membuat token untuk pengguna baru")
+		Logger.Error().Err(err).Str("api", "Register").Int("user_id", newUser.ID).Msg("[Register] Gagal membuat token untuk pengguna baru")
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan server", nil)
 	}
 
@@ -208,7 +208,7 @@ func (h *AuthHandlers) UpdateUserLevel(c echo.Context) error {
 	// Update user level
 	result, err := h.repo.UpdateUserLevel(userID, req.UserLevel, paymentData, &adminUser.ID)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "UpdateUserLevel").Int("user_id", userID).Str("new_level", string(req.UserLevel)).Msg("[UpdateUserLevel] Gagal memperbarui level pengguna")
+		Logger.Error().Err(err).Str("api", "UpdateUserLevel").Int("user_id", userID).Str("new_level", string(req.UserLevel)).Msg("[UpdateUserLevel] Gagal memperbarui level pengguna")
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Gagal memperbarui level pengguna", nil)
 	}
 
@@ -236,7 +236,7 @@ func (h *AuthHandlers) UpdateUserStatus(c echo.Context) error {
 	// Update user status
 	updatedUser, err := h.repo.UpdateUserStatus(userID, req.Status)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "UpdateUserStatus").Int("user_id", userID).Str("new_status", string(req.Status)).Msg("[UpdateUserStatus] Error updating user status")
+		Logger.Error().Err(err).Str("api", "UpdateUserStatus").Int("user_id", userID).Str("new_status", string(req.Status)).Msg("[UpdateUserStatus] Error updating user status")
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Error updating user status", nil)
 	}
 
@@ -262,7 +262,7 @@ func (h *AuthHandlers) GetAllUsers(c echo.Context) error {
 	// Get users with filters
 	result, err := h.repo.GetAllUsers(page, limit, query.Status, query.UserLevel, query.EmailFilter)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "GetAllUsers").Msg("Error fetching users")
+		Logger.Error().Err(err).Str("api", "GetAllUsers").Msg("Error fetching users")
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Error fetching users", nil)
 	}
 
@@ -274,7 +274,7 @@ func (h *AuthHandlers) GetExpiredUsers(c echo.Context) error {
 	// Get expired users
 	expiredUsers, err := h.repo.GetExpiredUsers()
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "GetExpiredUsers").Msg("Error fetching expired users")
+		Logger.Error().Err(err).Str("api", "GetExpiredUsers").Msg("Error fetching expired users")
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Error fetching expired users", nil)
 	}
 

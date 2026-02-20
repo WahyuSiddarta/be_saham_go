@@ -44,14 +44,14 @@ func (h *PortfolioBondHandlers) CreateBondPortfolio(c echo.Context) error {
 	if req.NextCouponDate != nil {
 		nextCouponDate, err = validator.ParseDate(req.NextCouponDate)
 		if err != nil {
-			Logger.Error().Err(err).Str("API", "CreateBondPortfolio").Msg("Invalid next coupon date")
+			Logger.Error().Err(err).Str("api", "CreateBondPortfolio").Msg("Invalid next coupon date")
 			return helper.ErrorResponse(c, http.StatusBadRequest, "Format tanggal kupon berikutnya tidak valid", nil)
 		}
 	}
 
 	maturityDate, err := validator.ParseDate(&req.MaturityDate)
 	if err != nil || maturityDate == nil {
-		Logger.Error().Err(err).Str("API", "CreateBondPortfolio").Msg("Invalid maturity date")
+		Logger.Error().Err(err).Str("api", "CreateBondPortfolio").Msg("Invalid maturity date")
 		return helper.ErrorResponse(c, http.StatusBadRequest, "Format tanggal jatuh tempo tidak valid", nil)
 	}
 
@@ -70,7 +70,7 @@ func (h *PortfolioBondHandlers) CreateBondPortfolio(c echo.Context) error {
 
 	result, err := h.bondRepo.Create(userID, payload)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "CreateBondPortfolio").Msg("Error creating bond portfolio")
+		Logger.Error().Err(err).Str("api", "CreateBondPortfolio").Msg("Error creating bond portfolio")
 		middleware.CaptureError(c, err, map[string]string{"handler": "CreateBondPortfolio"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -87,7 +87,7 @@ func (h *PortfolioBondHandlers) GetMyBondPortfolios(c echo.Context) error {
 
 	portfolios, err := h.bondRepo.FindByUserID(userID)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "GetMyBondPortfolios").Msg("Error fetching bond portfolios")
+		Logger.Error().Err(err).Str("api", "GetMyBondPortfolios").Msg("Error fetching bond portfolios")
 		middleware.CaptureError(c, err, map[string]string{"handler": "GetMyBondPortfolios"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -113,7 +113,7 @@ func (h *PortfolioBondHandlers) UpdateMarketPriceOverride(c echo.Context) error 
 	}
 
 	if _, err := h.bondRepo.UpdateMarketPriceOverride(portfolioID, userID, req.MarketPriceOverride); err != nil {
-		Logger.Error().Err(err).Str("API", "UpdateMarketPriceOverride").Msg("Error updating override")
+		Logger.Error().Err(err).Str("api", "UpdateMarketPriceOverride").Msg("Error updating override")
 		middleware.CaptureError(c, err, map[string]string{"handler": "UpdateMarketPriceOverride"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -138,13 +138,13 @@ func (h *PortfolioBondHandlers) UpdateBondPortfolio(c echo.Context) error {
 
 	nextCouponDate, err := validator.ParseDate(req.NextCouponDate)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "UpdateBondPortfolio").Msg("Invalid next coupon date")
+		Logger.Error().Err(err).Str("api", "UpdateBondPortfolio").Msg("Invalid next coupon date")
 		return helper.ErrorResponse(c, http.StatusBadRequest, "Format tanggal kupon berikutnya tidak valid", nil)
 	}
 
 	maturityDate, err := validator.ParseDate(req.MaturityDate)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "UpdateBondPortfolio").Msg("Invalid maturity date")
+		Logger.Error().Err(err).Str("api", "UpdateBondPortfolio").Msg("Invalid maturity date")
 		return helper.ErrorResponse(c, http.StatusBadRequest, "Format tanggal jatuh tempo tidak valid", nil)
 	}
 
@@ -166,7 +166,7 @@ func (h *PortfolioBondHandlers) UpdateBondPortfolio(c echo.Context) error {
 
 	result, err := h.bondRepo.Update(portfolioID, userID, payload)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "UpdateBondPortfolio").Msg("Error updating bond portfolio")
+		Logger.Error().Err(err).Str("api", "UpdateBondPortfolio").Msg("Error updating bond portfolio")
 		middleware.CaptureError(c, err, map[string]string{"handler": "UpdateBondPortfolio"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -192,7 +192,7 @@ func (h *PortfolioBondHandlers) DeleteBondPortfolio(c echo.Context) error {
 
 	err = h.bondRepo.Delete(portfolioID, userID)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "DeleteBondPortfolio").Msg("Error deleting bond portfolio")
+		Logger.Error().Err(err).Str("api", "DeleteBondPortfolio").Msg("Error deleting bond portfolio")
 		middleware.CaptureError(c, err, map[string]string{"handler": "DeleteBondPortfolio"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -210,7 +210,7 @@ func (h *PortfolioBondHandlers) CreateCoupon(c echo.Context) error {
 
 	paymentDate, err := validator.ParseDate(&req.PaymentDate)
 	if err != nil || paymentDate == nil {
-		Logger.Error().Err(err).Str("API", "CreateCoupon").Msg("Invalid payment date")
+		Logger.Error().Err(err).Str("api", "CreateCoupon").Msg("Invalid payment date")
 		return helper.ErrorResponse(c, http.StatusBadRequest, "Format tanggal pembayaran tidak valid", nil)
 	}
 
@@ -225,7 +225,7 @@ func (h *PortfolioBondHandlers) CreateCoupon(c echo.Context) error {
 
 	result, err := h.couponRepo.Create(userID, payload)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "CreateCoupon").Msg("Error creating coupon")
+		Logger.Error().Err(err).Str("api", "CreateCoupon").Msg("Error creating coupon")
 		middleware.CaptureError(c, err, map[string]string{"handler": "CreateCoupon"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -247,7 +247,7 @@ func (h *PortfolioBondHandlers) GetCouponsByBond(c echo.Context) error {
 
 	coupons, err := h.couponRepo.FindByPortfolioBondID(userID, portfolioBondID)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "GetCouponsByBond").Msg("Error fetching coupons")
+		Logger.Error().Err(err).Str("api", "GetCouponsByBond").Msg("Error fetching coupons")
 		middleware.CaptureError(c, err, map[string]string{"handler": "GetCouponsByBond"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -270,7 +270,7 @@ func (h *PortfolioBondHandlers) UpdateCoupon(c echo.Context) error {
 
 	paymentDate, err := validator.ParseDate(req.PaymentDate)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "UpdateCoupon").Msg("Invalid payment date")
+		Logger.Error().Err(err).Str("api", "UpdateCoupon").Msg("Invalid payment date")
 		return helper.ErrorResponse(c, http.StatusBadRequest, "Format tanggal pembayaran tidak valid", nil)
 	}
 
@@ -284,7 +284,7 @@ func (h *PortfolioBondHandlers) UpdateCoupon(c echo.Context) error {
 
 	result, err := h.couponRepo.Update(couponID, userID, payload)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "UpdateCoupon").Msg("Error updating coupon")
+		Logger.Error().Err(err).Str("api", "UpdateCoupon").Msg("Error updating coupon")
 		middleware.CaptureError(c, err, map[string]string{"handler": "UpdateCoupon"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -310,7 +310,7 @@ func (h *PortfolioBondHandlers) DeleteCoupon(c echo.Context) error {
 
 	err = h.couponRepo.Delete(couponID, userID)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "DeleteCoupon").Msg("Error deleting coupon")
+		Logger.Error().Err(err).Str("api", "DeleteCoupon").Msg("Error deleting coupon")
 		middleware.CaptureError(c, err, map[string]string{"handler": "DeleteCoupon"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -328,7 +328,7 @@ func (h *PortfolioBondHandlers) CreateRealizedBond(c echo.Context) error {
 
 	realizedDate, err := validator.ParseDate(req.RealizedDate)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "CreateRealizedBond").Msg("Invalid realized date")
+		Logger.Error().Err(err).Str("api", "CreateRealizedBond").Msg("Invalid realized date")
 		return helper.ErrorResponse(c, http.StatusBadRequest, "Format tanggal realisasi tidak valid", nil)
 	}
 
@@ -342,7 +342,7 @@ func (h *PortfolioBondHandlers) CreateRealizedBond(c echo.Context) error {
 
 	result, err := h.realizedRepo.Create(userID, payload)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "CreateRealizedBond").Msg("Error creating realized bond")
+		Logger.Error().Err(err).Str("api", "CreateRealizedBond").Msg("Error creating realized bond")
 		middleware.CaptureError(c, err, map[string]string{"handler": "CreateRealizedBond"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -361,7 +361,7 @@ func (h *PortfolioBondHandlers) GetRealizedBonds(c echo.Context) error {
 
 	entries, err := h.realizedRepo.FindByUserID(userID, limit, offset)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "GetRealizedBonds").Msg("Error fetching realized bonds")
+		Logger.Error().Err(err).Str("api", "GetRealizedBonds").Msg("Error fetching realized bonds")
 		middleware.CaptureError(c, err, map[string]string{"handler": "GetRealizedBonds"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -398,7 +398,7 @@ func (h *PortfolioBondHandlers) GetRealizedBondsByPortfolioId(c echo.Context) er
 
 	entries, err := h.realizedRepo.FindByPortfolioBondID(userID, portfolioBondID, limit, offset)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "GetRealizedBondsByPortfolioId").Msg("Error fetching realized bonds")
+		Logger.Error().Err(err).Str("api", "GetRealizedBondsByPortfolioId").Msg("Error fetching realized bonds")
 		middleware.CaptureError(c, err, map[string]string{"handler": "GetRealizedBondsByPortfolioId"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -434,7 +434,7 @@ func (h *PortfolioBondHandlers) UpdateRealizedBond(c echo.Context) error {
 
 	realizedDate, err := validator.ParseDate(req.RealizedDate)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "UpdateRealizedBond").Msg("Invalid realized date")
+		Logger.Error().Err(err).Str("api", "UpdateRealizedBond").Msg("Invalid realized date")
 		return helper.ErrorResponse(c, http.StatusBadRequest, "Format tanggal realisasi tidak valid", nil)
 	}
 
@@ -447,7 +447,7 @@ func (h *PortfolioBondHandlers) UpdateRealizedBond(c echo.Context) error {
 
 	result, err := h.realizedRepo.Update(realizedID, userID, payload)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "UpdateRealizedBond").Msg("Error updating realized bond")
+		Logger.Error().Err(err).Str("api", "UpdateRealizedBond").Msg("Error updating realized bond")
 		middleware.CaptureError(c, err, map[string]string{"handler": "UpdateRealizedBond"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
@@ -473,7 +473,7 @@ func (h *PortfolioBondHandlers) DeleteRealizedBond(c echo.Context) error {
 
 	err = h.realizedRepo.Delete(realizedID, userID)
 	if err != nil {
-		Logger.Error().Err(err).Str("API", "DeleteRealizedBond").Msg("Error deleting realized bond")
+		Logger.Error().Err(err).Str("api", "DeleteRealizedBond").Msg("Error deleting realized bond")
 		middleware.CaptureError(c, err, map[string]string{"handler": "DeleteRealizedBond"}, nil)
 		return helper.ErrorResponse(c, http.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 	}
