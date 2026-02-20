@@ -12,6 +12,7 @@ import (
 
 	"github.com/WahyuSiddarta/be_saham_go/api"
 	"github.com/WahyuSiddarta/be_saham_go/config"
+	"github.com/WahyuSiddarta/be_saham_go/cron"
 	database "github.com/WahyuSiddarta/be_saham_go/db"
 	exLogger "github.com/WahyuSiddarta/be_saham_go/logger"
 	"github.com/WahyuSiddarta/be_saham_go/middleware"
@@ -41,12 +42,12 @@ func handleCriticalError(logger *zerolog.Logger, operation string, err error) {
 	os.Exit(1)
 }
 
-// initializeSystem handles all system-wide initialization
-func initializeSystem() *api.API {
+// initializeCoreSystem handles system-wide initialization shared by API and cron modes
+func initializeCoreSystem() *config.Config {
 	// Initialize logger first
 	Logger = exLogger.InitLogger()
 	exLogger.DistrubuteLogger(Logger)
-	Logger.Info().Msg("System initialization started - 1 / 7 - Logger initialized")
+	Logger.Info().Msg("System initialization started - 1 / 5 - Logger initialized")
 
 	// Get configuration
 	// var err error
@@ -60,7 +61,7 @@ func initializeSystem() *api.API {
 		handleCriticalError(Logger, "loading configuration 2", err)
 	}
 
-	Logger.Info().Msg("System initialization started - 2 / 7 - Configuration loaded")
+	Logger.Info().Msg("System initialization started - 2 / 5 - Configuration loaded")
 	loglevel, err := zerolog.ParseLevel(configStruct.LogLevel)
 	if err != nil {
 		Logger.Warn().Err(err).Msg("Invalid log level in config, defaulting to info")
@@ -96,22 +97,14 @@ func initializeSystem() *api.API {
 		}); err != nil {
 			Logger.Warn().Err(err).Msg("Sentry initialization failed")
 		} else {
-			Logger.Info().Msgf("System initialization started - 3 / 7 - Sentry initialized (TracesSampleRate: %.1f%%)", tracesSampleRate*100)
+			Logger.Info().Msgf("System initialization started - 3 / 5 - Sentry initialized (TracesSampleRate: %.1f%%)", tracesSampleRate*100)
 		}
 	} else {
 		Logger.Info().Msg("Sentry DSN not configured, skipping Sentry initialization")
 	}
 
-	// /Volumes/KyoMac/Users/wahyusiddarta/Code/saham/CapitalSight-fe/datasourceeate Echo instance
-	Logger.Info().Msg("System initialization started - 4 / 7 - Echo instance created")
-	echoInstance := echo.New()
-
-	// Setup global middleware
-	Logger.Info().Msg("System initialization started - 5 / 7 - Middleware initialized")
-	middleware.SetupGlobalMiddleware(echoInstance)
-
 	// Initialize databases and validate connections
-	Logger.Info().Msg("System initialization started - 6 / 7 - Database initialized")
+	Logger.Info().Msg("System initialization started - 4 / 5 - Database initialized")
 	var (
 		dbManager models.DBManager
 		wg        sync.WaitGroup
@@ -141,24 +134,40 @@ func initializeSystem() *api.API {
 
 	wg.Wait()
 	models.DBM = dbManager
+	Logger.Info().Msg("System initialization started - 5 / 5 - Core initialization completed")
 
-	// Create API instance with all dependencies
-	Logger.Info().Msg("System initialization started - 7 / 7 - API instance created")
+	return configStruct
+}
+
+func initializeAPISystem() *api.API {
+	Logger.Info().Msg("API initialization started - 1 / 3 - Echo instance created")
+	echoInstance := echo.New()
+
+	Logger.Info().Msg("API initialization started - 2 / 3 - Middleware initialized")
+	middleware.SetupGlobalMiddleware(echoInstance)
+
+	Logger.Info().Msg("API initialization started - 3 / 3 - API instance created")
 	apiInstance := &api.API{
 		Router: echoInstance,
 	}
-	Logger.Info().Msg("System initialization completed")
+	Logger.Info().Msg("API initialization completed")
 	return apiInstance
+}
+
+func initializeCronSystem(configStruct *config.Config) *cron.Runner {
+	cronRunner := cron.NewRunner(Logger, configStruct.Cron.Interval)
+	Logger.Info().Dur("interval", configStruct.Cron.Interval).Msg("Cron initialization completed")
+	return cronRunner
 }
 
 func main() {
 	runtime.GOMAXPROCS(2 * runtime.NumCPU())
 	fmt.Println("VCPU Proc :", runtime.NumCPU())
 
-	// Initialize all system components
-	apiInstance := initializeSystem()
+	configStruct := initializeCoreSystem()
+	apiInstance := initializeAPISystem()
+	cronRunner := initializeCronSystem(configStruct)
 
-	// Create router and setup routes
 	r := router.New(apiInstance, Logger)
 	go func() {
 		if err := r.SetupRoutes(); err != nil {
@@ -167,20 +176,39 @@ func main() {
 		}
 	}()
 
-	// Graceful shutdown
+	cronCtx, cronCancel := context.WithCancel(context.Background())
+	defer cronCancel()
+
+	cronDone := make(chan struct{})
+	go func() {
+		defer close(cronDone)
+		cronRunner.Start(cronCtx)
+	}()
+
 	quit := make(chan os.Signal, 10)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
 	Logger.Info().Msg("Application gracefully shutdown")
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
 
-	if err := apiInstance.Router.Shutdown(ctx); err != nil {
+	cronCancel()
+	cronShutdownCtx, cronShutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cronShutdownCancel()
+
+	select {
+	case <-cronDone:
+		Logger.Info().Msg("Cron runner exited cleanly")
+	case <-cronShutdownCtx.Done():
+		Logger.Warn().Msg("Cron shutdown timeout reached")
+	}
+
+	apiShutdownCtx, apiShutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer apiShutdownCancel()
+
+	if err := apiInstance.Router.Shutdown(apiShutdownCtx); err != nil {
 		Logger.Fatal().Err(err).Msg("Error during shutdown")
 	}
 
-	// Flush Sentry
 	middleware.FlushSentry(5)
 	Logger.Info().Msg("Application fully shutdown")
 }

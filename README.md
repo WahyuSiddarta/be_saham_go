@@ -66,9 +66,17 @@ go run main.go
 
 # Or use the convenience script
 ./run.sh
+
+# Cron mode with custom interval (default: 1m)
+CRON_INTERVAL=30s go run main.go
 ```
 
 The server will start on `http://localhost:3000` (or port specified in .env)
+
+## Runtime Behavior
+
+- Application always starts both HTTP API server and cron runner in one process
+- `CRON_INTERVAL`: cron execution interval in Go duration format (example: `30s`, `1m`, `5m`)
 
 ### Development
 
@@ -98,6 +106,7 @@ air
 be_saham_go/
 ├── api/              # API handlers and logic
 ├── config/           # Configuration management
+├── cron/             # Cron runner and scheduled job orchestration
 ├── db/               # Database connections and utilities
 ├── helper/           # Helper functions and utilities
 ├── middleware/       # HTTP middleware (CORS, Rate limiting, Auth, Logging)

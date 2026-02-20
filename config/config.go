@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
@@ -19,6 +20,7 @@ type Config struct {
 	Env        string
 	LogLevel   string
 	AppVersion string
+	Cron       CronConfig
 
 	// Sentry Configuration
 	SentryDSN string
@@ -34,6 +36,11 @@ type Config struct {
 
 	// Database Configuration
 	Database DatabaseConfig
+}
+
+// CronConfig holds cron/scheduler configuration
+type CronConfig struct {
+	Interval time.Duration
 }
 
 // JWTConfig holds JWT configuration
@@ -94,6 +101,9 @@ func Load() (*Config, error) {
 		LogLevel:   getEnv("LOG_LEVEL", "info"),
 		AppVersion: getEnv("APP_VERSION", "1.0.0"),
 		SentryDSN:  getEnv("SENTRY_DSN", ""),
+		Cron: CronConfig{
+			Interval: parseDurationEnv("CRON_INTERVAL", time.Minute),
+		},
 		JWT: JWTConfig{
 			Secret:    getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-in-production"),
 			ExpiresIn: getEnv("JWT_EXPIRES_IN", "24h"),
@@ -178,4 +188,21 @@ func parseCORSOrigins(originsStr string) []string {
 		origins[i] = strings.TrimSpace(origin)
 	}
 	return origins
+}
+
+func parseDurationEnv(name string, defaultValue time.Duration) time.Duration {
+	valueStr := strings.TrimSpace(getEnv(name, ""))
+	if valueStr == "" {
+		return defaultValue
+	}
+
+	duration, err := time.ParseDuration(valueStr)
+	if err != nil {
+		if Logger != nil {
+			Logger.Warn().Err(err).Str("env", name).Str("value", valueStr).Msg("Invalid duration value, using default")
+		}
+		return defaultValue
+	}
+
+	return duration
 }
