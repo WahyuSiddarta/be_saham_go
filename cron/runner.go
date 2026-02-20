@@ -37,14 +37,14 @@ func (r *Runner) Start(ctx context.Context) {
 	r.logger.Info().Msg("Cron runner started")
 
 	scheduler := robfigcron.New()
-	r.UpsertStockInformation(ctx)
-	if _, err := scheduler.AddFunc("* * * * *", func() {
+
+	if _, err := scheduler.AddFunc("0 14 * * *", func() {
 		r.UpsertStockInformation(ctx)
 	}); err != nil {
 		r.logger.Fatal().Err(err).Msg("Failed to register cron schedule")
 		return
 	}
-	r.logger.Info().Str("job", "upsertStockInformation").Str("schedule", "* * * * *").Msg("Cron job registered")
+	r.logger.Info().Str("job", "upsertStockInformation").Str("schedule", "0 14 * * *").Msg("Cron job registered")
 
 	scheduler.Start()
 

@@ -15,8 +15,6 @@ type StockInformation struct {
 type StockEarningQuarterlyHistoryRecord struct {
 	ID                           int64      `json:"id" db:"id"`
 	Symbol                       string     `json:"symbol" db:"symbol"`
-	SecID                        *string    `json:"sec_id" db:"sec_id"`
-	InstrumentID                 *string    `json:"instrument_id" db:"instrument_id"`
 	PeriodCode                   string     `json:"period_code" db:"period_code"`
 	EpsActual                    *float64   `json:"eps_actual" db:"eps_actual"`
 	EpsSurprise                  *float64   `json:"eps_surprise" db:"eps_surprise"`
@@ -41,8 +39,6 @@ type StockEarningQuarterlyHistoryRecord struct {
 
 type StockOverviewMetricsRecord struct {
 	Symbol                        string
-	SecID                         *string
-	InstrumentID                  *string
 	Market                        *string
 	Currency                      *string
 	Beta                          *float64
@@ -173,8 +169,7 @@ func (r *stockRepository) UpsertStockEarningQuarterlyHistory(records []StockEarn
 	const query = `
 		INSERT INTO stock_earning_quarterly_history (
 			symbol,
-			sec_id,
-			instrument_id,
+
 			period_code,
 			eps_actual,
 			eps_surprise,
@@ -219,8 +214,7 @@ func (r *stockRepository) UpsertStockEarningQuarterlyHistory(records []StockEarn
 		)
 		ON CONFLICT (symbol, period_code)
 		DO UPDATE SET
-			sec_id = EXCLUDED.sec_id,
-			instrument_id = EXCLUDED.instrument_id,
+
 			eps_actual = EXCLUDED.eps_actual,
 			eps_surprise = EXCLUDED.eps_surprise,
 			eps_surprise_percent = EXCLUDED.eps_surprise_percent,
@@ -256,8 +250,6 @@ func (r *stockRepository) UpsertStockEarningQuarterlyHistory(records []StockEarn
 	for _, record := range records {
 		if _, err := stmt.Exec(
 			record.Symbol,
-			record.SecID,
-			record.InstrumentID,
 			record.PeriodCode,
 			record.EpsActual,
 			record.EpsSurprise,
@@ -301,8 +293,6 @@ func (r *stockRepository) UpsertStockOverviewMetrics(record *StockOverviewMetric
 	const query = `
 		INSERT INTO stock_overview_metrics (
 			symbol,
-			sec_id,
-			instrument_id,
 			market,
 			currency,
 			beta,
@@ -393,8 +383,6 @@ func (r *stockRepository) UpsertStockOverviewMetrics(record *StockOverviewMetric
 		)
 		ON CONFLICT (symbol)
 		DO UPDATE SET
-			sec_id = EXCLUDED.sec_id,
-			instrument_id = EXCLUDED.instrument_id,
 			market = EXCLUDED.market,
 			currency = EXCLUDED.currency,
 			beta = EXCLUDED.beta,
@@ -477,8 +465,6 @@ func (r *stockRepository) UpsertStockOverviewMetrics(record *StockOverviewMetric
 	if _, err := db.Exec(
 		query,
 		&record.Symbol,
-		&record.SecID,
-		&record.InstrumentID,
 		&record.Market,
 		&record.Currency,
 		&record.Beta,

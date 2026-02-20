@@ -35,8 +35,6 @@ CREATE TABLE public.stock (
 CREATE TABLE stock_earning_quarterly_history (
     id BIGSERIAL PRIMARY KEY,
     symbol VARCHAR(32) NOT NULL,
-    sec_id VARCHAR(64),
-    instrument_id VARCHAR(64),
     period_code CHAR(6) NOT NULL CHECK (period_code ~ '^[0-9]{6}$'),
 
     eps_actual NUMERIC(20, 6),
@@ -84,8 +82,6 @@ CREATE INDEX idx_stock_earning_qh_release_date ON stock_earning_quarterly_histor
 CREATE TABLE stock_overview_metrics (
     id BIGSERIAL PRIMARY KEY,
     symbol VARCHAR(32) NOT NULL,
-    sec_id VARCHAR(64),
-    instrument_id VARCHAR(64),
     market VARCHAR(32),
     currency VARCHAR(16),
     beta NUMERIC(30, 6),
