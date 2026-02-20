@@ -145,7 +145,7 @@ func (r *stockRepository) GetStockApiKey() ([]StockInformation, error) {
 		return nil, err
 	}
 
-	const query = `SELECT ticker, api_key FROM stock`
+	const query = `SELECT a.ticker, a.api_key FROM stock a WHERE a.last_update > NOW() - INTERVAL '14 days' AND a.api_key IS NOT NULL`
 
 	var stocks []StockInformation
 	err = db.Select(&stocks, query)
@@ -166,10 +166,10 @@ func (r *stockRepository) UpsertStockEarningQuarterlyHistory(records []StockEarn
 		return err
 	}
 
+	const updateTimestampQuery = `UPDATE stock SET last_update = CURRENT_TIMESTAMP WHERE ticker = $1`
 	const query = `
 		INSERT INTO stock_earning_quarterly_history (
 			symbol,
-
 			period_code,
 			eps_actual,
 			eps_surprise,
@@ -243,11 +243,24 @@ func (r *stockRepository) UpsertStockEarningQuarterlyHistory(records []StockEarn
 
 	stmt, err := tx.Preparex(query)
 	if err != nil {
+		tx.Rollback()
 		return fmt.Errorf("error preparing stock earning quarterly upsert statement: %w", err)
 	}
 	defer stmt.Close()
 
+	stmtUpdate, err := tx.Preparex(updateTimestampQuery)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("error preparing stock last update timestamp statement: %w", err)
+	}
+	defer stmtUpdate.Close()
+
 	for _, record := range records {
+		if _, err := stmtUpdate.Exec(record.Symbol); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("error updating last update timestamp for symbol %s: %w", record.Symbol, err)
+		}
+
 		if _, err := stmt.Exec(
 			record.Symbol,
 			record.PeriodCode,
@@ -269,6 +282,7 @@ func (r *stockRepository) UpsertStockEarningQuarterlyHistory(records []StockEarn
 			record.CalendarPeriodEndDate,
 			record.PrimaryEPS,
 		); err != nil {
+			tx.Rollback()
 			return fmt.Errorf("error upserting stock earning quarterly history for symbol %s period %s: %w", record.Symbol, record.PeriodCode, err)
 		}
 	}
@@ -290,6 +304,7 @@ func (r *stockRepository) UpsertStockOverviewMetrics(record *StockOverviewMetric
 		return err
 	}
 
+	const updateTimestampQuery = `UPDATE stock SET last_update = CURRENT_TIMESTAMP WHERE ticker = $1`
 	const query = `
 		INSERT INTO stock_overview_metrics (
 			symbol,
@@ -462,8 +477,26 @@ func (r *stockRepository) UpsertStockOverviewMetrics(record *StockOverviewMetric
 			source_time_last_updated = EXCLUDED.source_time_last_updated
 	`
 
-	if _, err := db.Exec(
-		query,
+	tx, err := db.Beginx()
+	if err != nil {
+		return fmt.Errorf("error starting transaction for stock overview metrics upsert: %w", err)
+	}
+
+	stmt, err := tx.Preparex(query)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("error preparing stock earning quarterly upsert statement: %w", err)
+	}
+	defer stmt.Close()
+
+	stmtUpdate, err := tx.Preparex(updateTimestampQuery)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("error preparing stock last update timestamp statement: %w", err)
+	}
+	defer stmtUpdate.Close()
+
+	if _, err := stmt.Exec(
 		&record.Symbol,
 		&record.Market,
 		&record.Currency,
@@ -543,9 +576,21 @@ func (r *stockRepository) UpsertStockOverviewMetrics(record *StockOverviewMetric
 		&record.NextExpectedReportDate,
 		&record.SourceTimeLastUpdated,
 	); err != nil {
+		tx.Rollback()
 		Logger.Error().Err(err).Msgf("Error upserting stock overview metrics : %+v", record)
 		return fmt.Errorf("error upserting stock overview metrics for symbol %s: %w", record.Symbol, err)
 	}
 
+	if _, err := stmtUpdate.Exec(record.Symbol); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("error updating last update timestamp for symbol %s: %w", record.Symbol, err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("error committing transaction for symbol %s: %w", record.Symbol, err)
+	}
+
+	tx.Commit()
 	return nil
 }
