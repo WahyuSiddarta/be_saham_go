@@ -9,6 +9,7 @@ import (
 	"github.com/WahyuSiddarta/be_saham_go/config"
 	"github.com/WahyuSiddarta/be_saham_go/helper"
 	"github.com/WahyuSiddarta/be_saham_go/models"
+	"github.com/WahyuSiddarta/be_saham_go/utime"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
@@ -42,9 +43,9 @@ func GenerateToken(userID int) (string, error) {
 	claims := &JWTClaims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresIn)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			NotBefore: jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(utime.Utime.Now().ToTime().Add(expiresIn)),
+			IssuedAt:  jwt.NewNumericDate(utime.Utime.Now().ToTime()),
+			NotBefore: jwt.NewNumericDate(utime.Utime.Now().ToTime()),
 		},
 	}
 
@@ -190,7 +191,7 @@ func RequirePremium() echo.MiddlewareFunc {
 			}
 
 			// Check if premium subscription has expired
-			if authUser.PremiumExpiresAt != nil && authUser.PremiumExpiresAt.Before(time.Now()) {
+			if authUser.PremiumExpiresAt != nil && authUser.PremiumExpiresAt.Before(utime.Utime.Now().ToTime()) {
 				return helper.ErrorResponse(c, http.StatusForbidden, "Premium subscription expired", nil)
 			}
 
@@ -217,7 +218,7 @@ func RequirePremiumPlus() echo.MiddlewareFunc {
 			}
 
 			// Check if premium+ subscription has expired
-			if authUser.PremiumExpiresAt != nil && authUser.PremiumExpiresAt.Before(time.Now()) {
+			if authUser.PremiumExpiresAt != nil && authUser.PremiumExpiresAt.Before(utime.Utime.Now().ToTime()) {
 				Logger.Warn().Str("user_level", string(authUser.UserLevel)).Msg("[RequirePremiumPlus] Premium+ subscription expired")
 
 				return helper.ErrorResponse(c, http.StatusForbidden, "Premium+ subscription expired", nil)

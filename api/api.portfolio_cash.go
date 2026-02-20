@@ -8,6 +8,7 @@ import (
 	"github.com/WahyuSiddarta/be_saham_go/helper"
 	"github.com/WahyuSiddarta/be_saham_go/middleware"
 	"github.com/WahyuSiddarta/be_saham_go/models"
+	"github.com/WahyuSiddarta/be_saham_go/utime"
 	"github.com/WahyuSiddarta/be_saham_go/validator"
 	"github.com/labstack/echo/v4"
 )
@@ -308,7 +309,7 @@ func (h *PortfolioCashHandlers) CreatePnlRealizedCash(c echo.Context) error {
 		return helper.ErrorResponse(c, http.StatusUnauthorized, "Pengguna belum diautentikasi", nil)
 	}
 
-	realizedAt := time.Now()
+	realizedAt := utime.Utime.Now().ToTime()
 	if req.RealizedAt != nil && *req.RealizedAt != "" {
 		t, err := time.Parse(time.RFC3339, *req.RealizedAt)
 		if err != nil {

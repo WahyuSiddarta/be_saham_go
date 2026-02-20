@@ -8,6 +8,7 @@ import (
 
 	"github.com/WahyuSiddarta/be_saham_go/helper"
 	"github.com/WahyuSiddarta/be_saham_go/models"
+	"github.com/WahyuSiddarta/be_saham_go/utime"
 	"github.com/bytedance/sonic"
 	robfigcron "github.com/robfig/cron/v3"
 	"github.com/rs/zerolog"
@@ -55,8 +56,10 @@ func (r *Runner) Start(ctx context.Context) {
 }
 
 func (r *Runner) UpsertStockInformation(ctx context.Context) {
-	startTime := time.Now()
+	startTime := utime.Utime.Now().ToTime()
 	r.logger.Info().Str("job", "upsertStockInformation").Msg("Cron job execution started")
+
+	const processStockInterval = 20 * time.Second
 
 	stockRepo := models.NewStockRepository()
 	targetStocks, err := stockRepo.GetStockApiKey()
@@ -70,27 +73,37 @@ func (r *Runner) UpsertStockInformation(ctx context.Context) {
 		return
 	}
 
-	for _, stock := range targetStocks {
+	for index, stock := range targetStocks {
 		select {
 		case <-ctx.Done():
 			r.logger.Info().Str("job", "upsertStockInformation").Msg("Cron job canceled")
 			return
 		default:
 		}
+
+		processStartTime := utime.Utime.Now().ToTime()
 		r.processStock(ctx, stockRepo, stock)
+
+		if index < len(targetStocks)-1 {
+			remainingWait := processStockInterval - utime.Utime.Now().ToTime().Sub(processStartTime)
+			if remainingWait > 0 {
+				select {
+				case <-ctx.Done():
+					r.logger.Info().Str("job", "upsertStockInformation").Msg("Cron job canceled while waiting for rate limit")
+					return
+				case <-time.After(remainingWait):
+				}
+			}
+		}
 	}
 
-	r.logger.Info().Str("job", "upsertStockInformation").Dur("duration", time.Since(startTime)).Msg("Cron job execution completed")
+	r.logger.Info().Str("job", "upsertStockInformation").Dur("duration", utime.Utime.Now().ToTime().Sub(startTime)).Msg("Cron job execution completed")
 }
 
 // fetchStockData fetches earnings and equities data concurrently for a single stock.
 func (r *Runner) fetchStockData(ctx context.Context, stock models.StockInformation) (earningsResp *helper.ExternalResponse, equitiesResp *helper.ExternalResponse, earningsErr error, equitiesErr error) {
 	var wg sync.WaitGroup
 	wg.Add(2)
-	r.logger.Info().
-		Str("job", "fetchStockData").
-		Str("IMPORTANT", stock.ApiKey).
-		Msg("Fetching stock data")
 	go func() {
 		defer wg.Done()
 		ctxEarning, cancel := context.WithTimeout(ctx, 30*time.Second)

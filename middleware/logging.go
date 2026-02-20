@@ -3,6 +3,7 @@ package middleware
 import (
 	"time"
 
+	"github.com/WahyuSiddarta/be_saham_go/utime"
 	"github.com/labstack/echo/v4"
 )
 
@@ -10,7 +11,7 @@ import (
 func RequestLogger() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			start := time.Now()
+			start := utime.Utime.Now().ToTime()
 
 			// Process request
 			err := next(c)
@@ -50,7 +51,7 @@ func RequestLogger() echo.MiddlewareFunc {
 func HealthCheckLogger() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			start := time.Now()
+			start := utime.Utime.Now().ToTime()
 
 			// Process request
 			err := next(c)

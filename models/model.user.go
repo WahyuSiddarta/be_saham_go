@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/WahyuSiddarta/be_saham_go/utime"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -329,7 +330,7 @@ func (r *userRepository) UpdateUserLevel(userID int, userLevel UserLevel, paymen
 
 	// Set expiration dates based on user level
 	if userLevel == UserLevelPremium || userLevel == UserLevelPremiumPlus {
-		now := time.Now()
+		now := utime.Utime.Now().ToTime()
 
 		// Check if user has a valid (non-expired) premium subscription to extend from
 		hasValidSubscription := (currentUser.UserLevel == UserLevelPremium || currentUser.UserLevel == UserLevelPremiumPlus) &&
@@ -374,7 +375,7 @@ func (r *userRepository) UpdateUserLevel(userID int, userLevel UserLevel, paymen
 			paymentMethod = *paymentData.PaymentMethod
 		}
 
-		paymentDate := time.Now()
+		paymentDate := utime.Utime.Now().ToTime()
 		if paymentData.PaymentDate != nil {
 			paymentDate = *paymentData.PaymentDate
 		}

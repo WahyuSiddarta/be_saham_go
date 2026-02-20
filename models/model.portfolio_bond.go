@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/WahyuSiddarta/be_saham_go/utime"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -654,7 +655,7 @@ func (r *portfolioBondRealizedRepository) Create(userID int, payload PortfolioBo
 		return nil, err
 	}
 
-	realizedDate := time.Now()
+	realizedDate := utime.Utime.Now().ToTime()
 	if payload.RealizedDate != nil {
 		realizedDate = *payload.RealizedDate
 	}
