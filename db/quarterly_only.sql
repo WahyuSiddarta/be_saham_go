@@ -82,8 +82,6 @@ CREATE INDEX idx_stock_earning_qh_release_date ON stock_earning_quarterly_histor
 CREATE TABLE stock_overview_metrics (
     id BIGSERIAL PRIMARY KEY,
     symbol VARCHAR(32) NOT NULL,
-    market VARCHAR(32),
-    currency VARCHAR(16),
     beta NUMERIC(30, 6),
 
     eps NUMERIC(30, 6),

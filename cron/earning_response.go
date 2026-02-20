@@ -85,9 +85,8 @@ func (e EarningsResponse) ToQuarterlyHistoryRecords() ([]models.StockEarningQuar
 		}
 
 		record := models.StockEarningQuarterlyHistoryRecord{
-			Symbol:                       e.Symbol,
-			SecID:                        helper.StringPointerOrNil(e.SecID),
-			InstrumentID:                 helper.StringPointerOrNil(e.Data.InstrumentID),
+			Symbol: e.Symbol,
+
 			PeriodCode:                   period,
 			EpsActual:                    quarter.EpsActual,
 			EpsSurprise:                  quarter.EpsSurprise,
@@ -127,10 +126,6 @@ func (e EarningsResponse) ToOverviewMetricsRecord() (*models.StockOverviewMetric
 
 	record := &models.StockOverviewMetricsRecord{
 		Symbol:                   e.Symbol,
-		SecID:                    helper.StringPointerOrNil(e.SecID),
-		InstrumentID:             helper.StringPointerOrNil(e.Data.InstrumentID),
-		Market:                   helper.StringPointerOrNil(e.Data.Market),
-		Currency:                 helper.StringPointerOrNil(e.Data.Currency),
 		MarketCap:                e.Data.MarketCap,
 		LastActualPeriodCode:     helper.StringPointerOrNil(e.Data.LastActualFiscalPeriod),
 		LastActualQuarterEPS:     e.Data.LastActual.EpsActual,

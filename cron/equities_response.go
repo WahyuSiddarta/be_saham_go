@@ -133,10 +133,6 @@ func (e EquitiesResponse) MergeIntoOverviewMetricsRecord(record *models.StockOve
 	if record.Symbol == "" {
 		record.Symbol = e.Symbol
 	}
-	setStringIfNil(&record.SecID, helper.StringPointerOrNil(e.SecID))
-	setStringIfNil(&record.InstrumentID, helper.StringPointerOrNil(e.Data.InstrumentID))
-	setStringIfNil(&record.Market, helper.StringPointerOrNil(e.Data.Market))
-	setStringIfNil(&record.Currency, helper.StringPointerOrNil(e.Data.Currency))
 
 	setFloat(&record.Beta, e.Data.Beta)
 	setFloat(&record.Eps, e.Data.Analysis.KeyMetrics.Eps)
@@ -294,15 +290,15 @@ func setString(dest **string, src *string) {
 	*dest = src
 }
 
-func setStringIfNil(dest **string, src *string) {
-	if *dest != nil {
-		return
-	}
-	if src == nil || *src == "" {
-		return
-	}
-	*dest = src
-}
+// func setStringIfNil(dest **string, src *string) {
+// 	if *dest != nil {
+// 		return
+// 	}
+// 	if src == nil || *src == "" {
+// 		return
+// 	}
+// 	*dest = src
+// }
 
 func setTime(dest **time.Time, src *time.Time) {
 	if src == nil {

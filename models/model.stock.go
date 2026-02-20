@@ -39,8 +39,6 @@ type StockEarningQuarterlyHistoryRecord struct {
 
 type StockOverviewMetricsRecord struct {
 	Symbol                        string
-	Market                        *string
-	Currency                      *string
 	Beta                          *float64
 	Eps                           *float64
 	BookValuePerShare             *float64
@@ -498,8 +496,6 @@ func (r *stockRepository) UpsertStockOverviewMetrics(record *StockOverviewMetric
 
 	if _, err := stmt.Exec(
 		&record.Symbol,
-		&record.Market,
-		&record.Currency,
 		&record.Beta,
 		&record.Eps,
 		&record.BookValuePerShare,
